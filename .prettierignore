@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+Tower Defense Path Generation.md
+Tower_Defense_Path_Editor_Implementation_Plan.md
