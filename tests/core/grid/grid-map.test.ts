@@ -1,4 +1,10 @@
-import { fromGridPositionKey, getAdjacentPosition, GridMap, toGridPositionKey } from '@/core/grid';
+import {
+  fromGridPositionKey,
+  getAdjacentPosition,
+  getOppositeDirection,
+  GridMap,
+  toGridPositionKey,
+} from '@/core/grid';
 import { describe, expect, it } from 'vitest';
 
 describe('GridMap', () => {
@@ -70,5 +76,12 @@ describe('GridMap', () => {
     expect(getAdjacentPosition(position, 'down')).toEqual({ x: 5, y: 9 });
     expect(getAdjacentPosition(position, 'left')).toEqual({ x: 4, y: 8 });
     expect(getAdjacentPosition(position, 'right')).toEqual({ x: 6, y: 8 });
+  });
+
+  it('returns the opposite direction', () => {
+    expect(getOppositeDirection('up')).toBe('down');
+    expect(getOppositeDirection('down')).toBe('up');
+    expect(getOppositeDirection('left')).toBe('right');
+    expect(getOppositeDirection('right')).toBe('left');
   });
 });
