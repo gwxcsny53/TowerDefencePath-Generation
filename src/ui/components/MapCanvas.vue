@@ -1,9 +1,99 @@
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import { createRenderViewport, MapRenderer } from '@/renderer';
+import type { LevelConfig } from '@/core/model';
+
+interface Props {
+  level?: LevelConfig | null;
+}
+
+const props = defineProps<Props>();
+const canvas = ref<HTMLCanvasElement | null>(null);
+const host = ref<HTMLElement | null>(null);
+const renderer = new MapRenderer();
+
+let context: CanvasRenderingContext2D | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let canvasWidth = 0;
+let canvasHeight = 0;
+
+function renderMap(): void {
+  if (context === null) {
+    return;
+  }
+
+  if (props.level === null || props.level === undefined) {
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    return;
+  }
+
+  const viewport = createRenderViewport(
+    { width: canvasWidth, height: canvasHeight },
+    props.level.grid,
+  );
+
+  renderer.render(context, props.level, viewport);
+}
+
+function resizeCanvas(width: number, height: number): void {
+  if (canvas.value === null || context === null) {
+    return;
+  }
+
+  canvasWidth = Math.max(0, width);
+  canvasHeight = Math.max(0, height);
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.value.width = Math.round(canvasWidth * dpr);
+  canvas.value.height = Math.round(canvasHeight * dpr);
+  context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  renderMap();
+}
+
+onMounted(() => {
+  if (canvas.value === null || host.value === null) {
+    return;
+  }
+
+  context = canvas.value.getContext('2d');
+  if (context === null) {
+    return;
+  }
+
+  resizeObserver = new ResizeObserver((entries) => {
+    const entry = entries[0];
+    if (entry !== undefined) {
+      resizeCanvas(entry.contentRect.width, entry.contentRect.height);
+    }
+  });
+
+  resizeObserver.observe(host.value);
+  const bounds = host.value.getBoundingClientRect();
+  resizeCanvas(bounds.width, bounds.height);
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  context = null;
+});
+
+watch(
+  () => props.level,
+  () => {
+    renderMap();
+  },
+);
+</script>
+
 <template>
-  <section class="map-canvas-host">
-    <canvas aria-label="塔防关卡地图编辑区域"></canvas>
-    <div class="map-placeholder" aria-hidden="true">
+  <section ref="host" class="map-canvas-host">
+    <canvas ref="canvas" aria-label="塔防关卡地图编辑区域"></canvas>
+    <div v-if="level === null || level === undefined" class="map-placeholder">
       <p>地图编辑区</p>
-      <span>后续将在此显示关卡网格与路线</span>
+      <span>暂无打开的关卡</span>
     </div>
   </section>
 </template>
