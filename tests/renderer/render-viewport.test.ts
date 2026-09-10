@@ -56,4 +56,42 @@ describe('createRenderViewport', () => {
     expect(viewport.isValid).toBe(false);
     expect(viewport.cellSize).toBe(0);
   });
+
+  it('converts canvas points to in-bounds grid positions only', () => {
+    const viewport = createRenderViewport({ width: 400, height: 300 }, { rows: 10, cols: 20 });
+    expect(viewport.canvasToGrid({ x: viewport.offsetX, y: viewport.offsetY })).toEqual({
+      x: 0,
+      y: 0,
+    });
+    expect(viewport.canvasToGrid(viewport.gridCellCenter({ x: 2, y: 3 }))).toEqual({ x: 2, y: 3 });
+    expect(
+      viewport.canvasToGrid({
+        x: viewport.offsetX + viewport.gridCols * viewport.cellSize - 0.01,
+        y: viewport.offsetY + viewport.gridRows * viewport.cellSize - 0.01,
+      }),
+    ).toEqual({ x: 19, y: 9 });
+    expect(viewport.canvasToGrid({ x: viewport.offsetX - 1, y: viewport.offsetY })).toBeNull();
+    expect(
+      viewport.canvasToGrid({
+        x: viewport.offsetX + viewport.gridCols * viewport.cellSize,
+        y: viewport.offsetY,
+      }),
+    ).toBeNull();
+    expect(viewport.canvasToGrid({ x: viewport.offsetX, y: viewport.offsetY - 1 })).toBeNull();
+    expect(
+      viewport.canvasToGrid({
+        x: viewport.offsetX,
+        y: viewport.offsetY + viewport.gridRows * viewport.cellSize,
+      }),
+    ).toBeNull();
+  });
+
+  it('does not convert canvas points for an invalid viewport', () => {
+    expect(
+      createRenderViewport({ width: 20, height: 20 }, { rows: 10, cols: 10 }).canvasToGrid({
+        x: 0,
+        y: 0,
+      }),
+    ).toBeNull();
+  });
 });

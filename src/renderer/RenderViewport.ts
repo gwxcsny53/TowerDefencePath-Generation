@@ -21,6 +21,7 @@ export interface RenderViewport {
   isValid: boolean;
   gridToCanvas(position: GridPosition): CanvasPoint;
   gridCellCenter(position: GridPosition): CanvasPoint;
+  canvasToGrid(point: CanvasPoint): GridPosition | null;
   isInBounds(position: GridPosition): boolean;
 }
 
@@ -66,6 +67,20 @@ export function createRenderViewport(canvasSize: CanvasSize, gridSize: GridSize)
       return {
         x: offsetX + (position.x + 0.5) * cellSize,
         y: offsetY + (position.y + 0.5) * cellSize,
+      };
+    },
+    canvasToGrid(point) {
+      if (
+        !isValid ||
+        point.x < offsetX ||
+        point.x >= offsetX + gridCols * cellSize ||
+        point.y < offsetY ||
+        point.y >= offsetY + gridRows * cellSize
+      )
+        return null;
+      return {
+        x: Math.floor((point.x - offsetX) / cellSize),
+        y: Math.floor((point.y - offsetY) / cellSize),
       };
     },
     isInBounds(position) {

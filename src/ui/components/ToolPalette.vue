@@ -1,13 +1,33 @@
+<script setup lang="ts">
+import { EDITOR_TOOLS } from '@/editor';
+import type { EditorTool } from '@/editor';
+
+defineProps<{ activeTool: EditorTool }>();
+const emit = defineEmits<{ 'select-tool': [tool: EditorTool] }>();
+const toolLabels: Record<EditorTool, string> = {
+  select: '选择',
+  path: '路线',
+  spawn: '出生点',
+  end: '终点',
+  tower: '塔位',
+  eraser: '橡皮擦',
+};
+</script>
+
 <template>
   <section class="tool-palette" aria-label="编辑工具">
     <span class="tool-palette-label">工具</span>
     <div class="tool-palette-actions">
-      <button type="button" disabled>选择</button>
-      <button type="button" disabled>路线</button>
-      <button type="button" disabled>出生点</button>
-      <button type="button" disabled>终点</button>
-      <button type="button" disabled>塔位</button>
-      <button type="button" disabled>橡皮擦</button>
+      <button
+        v-for="tool in EDITOR_TOOLS"
+        :key="tool"
+        :class="{ 'is-active': activeTool === tool }"
+        :aria-pressed="activeTool === tool"
+        type="button"
+        @click="emit('select-tool', tool)"
+      >
+        {{ toolLabels[tool] }}
+      </button>
     </div>
   </section>
 </template>
@@ -46,5 +66,11 @@
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 0.25rem;
+}
+
+.tool-palette-actions button.is-active {
+  color: #ffffff;
+  background: #2563eb;
+  border-color: #1d4ed8;
 }
 </style>

@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
 import MapCanvas from '@/ui/components/MapCanvas.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
 import ToolPalette from '@/ui/components/ToolPalette.vue';
 import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
+import { useEditorStore } from '@/ui/stores/editorStore';
+
+const editorStore = useEditorStore();
+const { workingLevel, activeTool, selection } = storeToRefs(editorStore);
+const selectedPosition = computed(() => selection.value?.position ?? null);
 </script>
 
 <template>
@@ -13,19 +20,29 @@ import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 
     <main class="editor-workspace">
       <aside class="editor-level-area" aria-label="关卡列表">
-        <LevelTree />
+        <LevelTree :level="workingLevel" />
       </aside>
 
       <section class="editor-map-area" aria-label="地图编辑区域">
-        <MapCanvas />
+        <MapCanvas
+          :level="workingLevel"
+          :selected-position="selectedPosition"
+          @cell-pointer-down="editorStore.beginStroke"
+          @cell-pointer-move="editorStore.continueStroke"
+          @cell-pointer-up="editorStore.endStroke"
+        />
       </section>
 
       <aside class="editor-property-area" aria-label="属性面板">
-        <PropertyPanel />
+        <PropertyPanel
+          :level="workingLevel"
+          :selection="selection"
+          @update-tower-locked="editorStore.setSelectedTowerLocked"
+        />
       </aside>
     </main>
 
-    <ToolPalette />
+    <ToolPalette :active-tool="activeTool" @select-tool="editorStore.setActiveTool" />
     <ValidationPanel />
   </section>
 </template>
