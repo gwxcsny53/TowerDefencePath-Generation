@@ -5,8 +5,8 @@ import { getAdjacentPosition } from './GridDirection';
 import { fromGridPositionKey, toGridPositionKey } from './GridPositionKey';
 
 export interface PathNeighbor {
-  direction: Direction;
-  position: GridPosition;
+  readonly direction: Direction;
+  readonly position: Readonly<GridPosition>;
 }
 
 /** Stores path occupancy for a level grid without applying validation rules. */

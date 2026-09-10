@@ -5,9 +5,9 @@ import { toGridPositionKey } from '@/core/grid';
 export type PathNodeKind = 'isolated' | 'endpoint' | 'normal' | 'junction';
 
 export interface PathGraphNode {
-  position: GridPosition;
-  neighbors: readonly PathNeighbor[];
-  kind: PathNodeKind;
+  readonly position: Readonly<GridPosition>;
+  readonly neighbors: readonly PathNeighbor[];
+  readonly kind: PathNodeKind;
 }
 
 /** A snapshot of physical path topology built from a GridMap. */
@@ -16,7 +16,16 @@ export class PathGraph {
 
   constructor(nodes: readonly PathGraphNode[]) {
     for (const node of nodes) {
-      this.nodesByKey.set(toGridPositionKey(node.position), node);
+      const snapshotNode: PathGraphNode = {
+        position: { ...node.position },
+        neighbors: node.neighbors.map((neighbor) => ({
+          direction: neighbor.direction,
+          position: { ...neighbor.position },
+        })),
+        kind: node.kind,
+      };
+
+      this.nodesByKey.set(toGridPositionKey(snapshotNode.position), snapshotNode);
     }
   }
 

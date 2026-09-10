@@ -1,6 +1,7 @@
-import { GraphBuilder } from '@/core/graph';
+import { GraphBuilder, PathGraph } from '@/core/graph';
 import { GridMap } from '@/core/grid';
-import type { GridPosition } from '@/core/model';
+import type { Direction, GridPosition } from '@/core/model';
+import type { PathNodeKind } from '@/core/graph';
 import { describe, expect, it } from 'vitest';
 
 function buildGraph(pathCells: readonly GridPosition[]) {
@@ -92,6 +93,28 @@ describe('GraphBuilder', () => {
 
     expect(graph.size).toBe(1);
     expect(graph.hasNode({ x: 2, y: 2 })).toBe(true);
+  });
+
+  it('copies externally supplied nodes into its own snapshot', () => {
+    const sourcePosition = { x: 1, y: 1 };
+    const sourceNeighborPosition = { x: 2, y: 1 };
+    const sourceNode = {
+      position: sourcePosition,
+      neighbors: [{ direction: 'right' as Direction, position: sourceNeighborPosition }],
+      kind: 'endpoint' as PathNodeKind,
+    };
+    const graph = new PathGraph([sourceNode]);
+
+    sourceNode.position.x = 999;
+    sourceNode.neighbors[0].direction = 'left';
+    sourceNode.neighbors[0].position.x = 999;
+    sourceNode.kind = 'junction';
+
+    expect(graph.getNode({ x: 1, y: 1 })).toEqual({
+      position: { x: 1, y: 1 },
+      neighbors: [{ direction: 'right', position: { x: 2, y: 1 } }],
+      kind: 'endpoint',
+    });
   });
 
   it('keeps graphs as snapshots after GridMap mutations', () => {
