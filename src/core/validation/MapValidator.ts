@@ -1,16 +1,13 @@
 import { GraphBuilder } from '@/core/graph';
 import type { PathGraph, PathGraphNode } from '@/core/graph';
-import { getAdjacentPosition, getOppositeDirection, GridMap, toGridPositionKey } from '@/core/grid';
+import { GridMap, toGridPositionKey } from '@/core/grid';
+import { createNextRouteState, toRouteStateKey } from '@/core/route';
+import type { RouteState } from '@/core/route';
 import type { Direction, GridPosition, Junction, JunctionExit, LevelConfig } from '@/core/model';
 
 import type { ValidationCode, ValidationIssue } from './ValidationIssue';
 
 const WEIGHT_EPSILON = 1e-6;
-
-interface RouteState {
-  readonly position: Readonly<GridPosition>;
-  readonly enterFrom: Direction;
-}
 
 interface JunctionRouteConfig {
   readonly exitsByEntry: ReadonlyMap<Direction, readonly JunctionExit[]>;
@@ -359,10 +356,7 @@ export class MapValidator {
       const completed = new Map<string, boolean>();
       const visiting = new Set<string>();
       const reachesEnd = MapValidator.exploreRoute(
-        {
-          position: firstNeighbor.position,
-          enterFrom: getOppositeDirection(firstNeighbor.direction),
-        },
+        createNextRouteState(spawn, firstNeighbor.direction),
         graph,
         endKeys,
         junctionConfigs,
@@ -388,7 +382,7 @@ export class MapValidator {
     routeIssueKeys: Set<string>,
     issues: ValidationIssue[],
   ): boolean {
-    const stateKey = `${toGridPositionKey(state.position)}|${state.enterFrom}`;
+    const stateKey = toRouteStateKey(state);
 
     if (visiting.has(stateKey)) {
       MapValidator.addRouteIssue(
@@ -423,10 +417,7 @@ export class MapValidator {
 
       if (nextNeighbor) {
         reachesEnd = MapValidator.exploreRoute(
-          {
-            position: nextNeighbor.position,
-            enterFrom: getOppositeDirection(nextNeighbor.direction),
-          },
+          createNextRouteState(node.position, nextNeighbor.direction),
           graph,
           endKeys,
           junctionConfigs,
@@ -449,12 +440,8 @@ export class MapValidator {
         );
       } else {
         for (const exit of exits) {
-          const nextPosition = getAdjacentPosition(state.position, exit.exitTo);
           const branchReachesEnd = MapValidator.exploreRoute(
-            {
-              position: nextPosition,
-              enterFrom: getOppositeDirection(exit.exitTo),
-            },
+            createNextRouteState(state.position, exit.exitTo),
             graph,
             endKeys,
             junctionConfigs,
