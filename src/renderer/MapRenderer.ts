@@ -1,4 +1,5 @@
 import { GraphBuilder } from '@/core/graph';
+import type { PathGraph } from '@/core/graph';
 import { GridMap } from '@/core/grid';
 import type { LevelConfig } from '@/core/model';
 
@@ -9,6 +10,15 @@ import { renderPaths } from './PathRenderer';
 import { DEFAULT_RENDER_THEME } from './RenderTheme';
 import type { RenderTheme } from './RenderTheme';
 import type { RenderViewport } from './RenderViewport';
+
+/** Builds topology for rendering without letting out-of-bounds paths affect visible candidates. */
+export function createRenderGraph(level: LevelConfig): PathGraph {
+  const rawGridMap = new GridMap(level.grid, level.pathCells);
+  const renderablePathCells = level.pathCells.filter((position) => rawGridMap.isInBounds(position));
+  const analysisGridMap = new GridMap(level.grid, renderablePathCells);
+
+  return GraphBuilder.build(analysisGridMap);
+}
 
 /** Coordinates the full immediate-mode rendering order for one level. */
 export class MapRenderer {
@@ -21,8 +31,7 @@ export class MapRenderer {
       return;
     }
 
-    const gridMap = new GridMap(level.grid, level.pathCells);
-    const graph = GraphBuilder.build(gridMap);
+    const graph = createRenderGraph(level);
 
     renderGrid(context, viewport, this.theme);
     renderPaths(context, level.pathCells, viewport, this.theme);

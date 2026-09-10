@@ -49,4 +49,11 @@ describe('createRenderViewport', () => {
     expect(viewport.cellSize).toBe(0);
     expect(viewport.gridToCanvas({ x: 1, y: 1 })).toEqual({ x: 200, y: 150 });
   });
+
+  it('reports an invalid viewport when padding leaves no drawable canvas area', () => {
+    const viewport = createRenderViewport({ width: 20, height: 20 }, { rows: 10, cols: 10 });
+
+    expect(viewport.isValid).toBe(false);
+    expect(viewport.cellSize).toBe(0);
+  });
 });

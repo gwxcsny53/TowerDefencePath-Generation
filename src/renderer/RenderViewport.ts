@@ -29,23 +29,19 @@ export const MAX_CELL_SIZE = 48;
 
 /** Calculates a centered, read-only fit-to-view transform for one grid. */
 export function createRenderViewport(canvasSize: CanvasSize, gridSize: GridSize): RenderViewport {
-  const canvasWidth = Math.max(0, canvasSize.width);
-  const canvasHeight = Math.max(0, canvasSize.height);
-  const gridRows = gridSize.rows;
-  const gridCols = gridSize.cols;
-  const isValid =
-    Number.isFinite(gridRows) &&
-    Number.isFinite(gridCols) &&
-    gridRows > 0 &&
-    gridCols > 0 &&
-    canvasWidth > 0 &&
-    canvasHeight > 0;
+  const canvasWidth = toNonNegativeFiniteNumber(canvasSize.width);
+  const canvasHeight = toNonNegativeFiniteNumber(canvasSize.height);
+  const gridRows = toNonNegativeFiniteNumber(gridSize.rows);
+  const gridCols = toNonNegativeFiniteNumber(gridSize.cols);
+  const gridIsValid = gridRows > 0 && gridCols > 0;
 
   const availableWidth = Math.max(0, canvasWidth - RENDER_VIEWPORT_PADDING * 2);
   const availableHeight = Math.max(0, canvasHeight - RENDER_VIEWPORT_PADDING * 2);
-  const cellSize = isValid
+  const fittedCellSize = gridIsValid
     ? Math.min(MAX_CELL_SIZE, availableWidth / gridCols, availableHeight / gridRows)
     : 0;
+  const isValid = Number.isFinite(fittedCellSize) && fittedCellSize > 0;
+  const cellSize = isValid ? fittedCellSize : 0;
   const mapWidth = gridCols * cellSize;
   const mapHeight = gridRows * cellSize;
   const offsetX = (canvasWidth - mapWidth) / 2;
@@ -76,4 +72,8 @@ export function createRenderViewport(canvasSize: CanvasSize, gridSize: GridSize)
       return position.x >= 0 && position.x < gridCols && position.y >= 0 && position.y < gridRows;
     },
   };
+}
+
+function toNonNegativeFiniteNumber(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
 }
