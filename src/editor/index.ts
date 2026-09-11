@@ -41,6 +41,7 @@ export {
   undoEditorHistory,
 } from './history';
 export {
+  addProjectLevel,
   cloneLevelConfig,
   createEditorProject,
   createProjectLevel,

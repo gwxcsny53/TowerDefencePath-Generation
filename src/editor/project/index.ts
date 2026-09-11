@@ -1,4 +1,5 @@
 export {
+  addProjectLevel,
   cloneLevelConfig,
   createEditorProject,
   createProjectLevel,

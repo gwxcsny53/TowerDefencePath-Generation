@@ -43,6 +43,11 @@ export function createProjectLevel(project: EditorProject, spec: NewLevelSpec): 
   };
 }
 
+export function addProjectLevel(project: EditorProject, level: LevelConfig): EditorProject {
+  if (findProjectLevel(project, level.level) !== null) return project;
+  return { ...project, levels: [...project.levels, level] };
+}
+
 export function getNextAvailableStage(project: EditorProject, chapter: number): number {
   const stages = new Set(
     project.levels
@@ -101,7 +106,13 @@ export function replaceProjectLevel(
   replacement: LevelConfig,
 ): EditorProject {
   const currentLevel = findProjectLevel(project, address);
-  if (currentLevel === null || currentLevel === replacement) return project;
+  if (
+    currentLevel === null ||
+    currentLevel === replacement ||
+    replacement.level.chapter !== address.chapter ||
+    replacement.level.stage !== address.stage
+  )
+    return project;
   return {
     ...project,
     levels: project.levels.map((level) =>

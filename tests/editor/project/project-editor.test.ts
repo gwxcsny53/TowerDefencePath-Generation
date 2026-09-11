@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addProjectLevel,
   cloneLevelConfig,
   createEditorProject,
   createJunctionConfig,
@@ -151,5 +152,18 @@ describe('EditorProject', () => {
     expect(deleted.levels).toEqual([first]);
     expect(deleteProjectLevel(deleted, { chapter: 1, stage: 1 })).toBe(deleted);
     expect(project.levels[1]).toBe(second);
+  });
+
+  it('adds a unique external level without mutating the source project or accepting mismatch replacements', () => {
+    const project = createEditorProject();
+    const imported = { ...project.levels[0]!, level: { chapter: 2, stage: 1 } };
+    const added = addProjectLevel(project, imported);
+    const mismatch = { ...imported, level: { chapter: 3, stage: 1 } };
+
+    expect(added).not.toBe(project);
+    expect(added.levels).toEqual([...project.levels, imported]);
+    expect(project.levels).toHaveLength(1);
+    expect(addProjectLevel(added, imported)).toBe(added);
+    expect(replaceProjectLevel(added, { chapter: 2, stage: 1 }, mismatch)).toBe(added);
   });
 });

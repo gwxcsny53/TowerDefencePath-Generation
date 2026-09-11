@@ -2,6 +2,8 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
+import ExportDialog from '@/ui/components/ExportDialog.vue';
+import ImportDialog from '@/ui/components/ImportDialog.vue';
 import MapCanvas from '@/ui/components/MapCanvas.vue';
 import NewLevelDialog from '@/ui/components/NewLevelDialog.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
@@ -13,6 +15,8 @@ import { useEditorStore } from '@/ui/stores/editorStore';
 import { useRoutePreviewPlayback } from '@/ui/routePreview/useRoutePreviewPlayback';
 import { getNextAvailableStage } from '@/editor';
 import type { NewLevelSpec } from '@/editor';
+import { downloadJsonFile, EditorImportError, parseEditorImportText } from '@/io';
+import type { EditorImportPayload } from '@/io';
 
 const editorStore = useEditorStore();
 const {
@@ -34,6 +38,11 @@ const {
   persistenceError,
 } = storeToRefs(editorStore);
 const isNewLevelDialogOpen = ref(false);
+const isImportDialogOpen = ref(false);
+const isExportDialogOpen = ref(false);
+const importInput = ref<HTMLInputElement | null>(null);
+const pendingImport = ref<EditorImportPayload | null>(null);
+const importError = ref<string | null>(null);
 const selectedPosition = computed(() => selection.value?.position ?? null);
 const routePreviewResult = computed(() => routePreviewRun.value?.result ?? null);
 const {
@@ -61,6 +70,61 @@ const newLevelDefaults = computed<NewLevelSpec>(() => ({
 function createLevel(spec: NewLevelSpec): void {
   editorStore.createLevel(spec);
   isNewLevelDialogOpen.value = false;
+}
+function openImportPicker(): void {
+  if (importInput.value === null) return;
+  importInput.value.value = '';
+  importInput.value.click();
+}
+async function handleImportFile(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (file === undefined) return;
+  try {
+    pendingImport.value = parseEditorImportText(await file.text());
+    importError.value = null;
+  } catch (error) {
+    pendingImport.value = null;
+    importError.value = getImportErrorMessage(error);
+  }
+  isImportDialogOpen.value = true;
+}
+function closeImportDialog(): void {
+  isImportDialogOpen.value = false;
+  pendingImport.value = null;
+  importError.value = null;
+}
+function importLevel(): void {
+  if (pendingImport.value?.kind !== 'level') return;
+  if (editorStore.addImportedLevel(pendingImport.value.level)) closeImportDialog();
+}
+function replaceImportedLevel(): void {
+  if (pendingImport.value?.kind !== 'level') return;
+  if (editorStore.replaceImportedLevel(pendingImport.value.level)) closeImportDialog();
+}
+function copyImportedLevel(): void {
+  if (pendingImport.value?.kind !== 'level') return;
+  if (editorStore.addImportedLevelAsCopy(pendingImport.value.level)) closeImportDialog();
+}
+function replaceProjectFromBackup(): void {
+  if (pendingImport.value?.kind !== 'project-backup') return;
+  editorStore.replaceProjectFromBackup(pendingImport.value.backup);
+  closeImportDialog();
+}
+function exportCurrentLevel(): void {
+  const file = editorStore.createCurrentLevelExport();
+  downloadJsonFile(file.filename, file.content);
+  isExportDialogOpen.value = false;
+}
+function exportProjectBackup(): void {
+  const file = editorStore.createProjectBackupExport();
+  downloadJsonFile(file.filename, file.content);
+  isExportDialogOpen.value = false;
+}
+function getImportErrorMessage(error: unknown): string {
+  if (error instanceof EditorImportError) return error.message;
+  return 'JSON 文件格式无效。';
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -100,6 +164,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       @redo="editorStore.redo"
       @validate="editorStore.runValidation"
       @test-route="editorStore.startRoutePreview"
+      @import="openImportPicker"
+      @export="isExportDialogOpen = true"
     />
 
     <main class="editor-workspace">
@@ -163,6 +229,30 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :defaults="newLevelDefaults"
       @create="createLevel"
       @cancel="isNewLevelDialogOpen = false"
+    />
+    <input
+      ref="importInput"
+      class="editor-import-input"
+      type="file"
+      accept=".json,application/json"
+      @change="handleImportFile"
+    />
+    <ImportDialog
+      :open="isImportDialogOpen"
+      :project="project"
+      :payload="pendingImport"
+      :error-message="importError"
+      @close="closeImportDialog"
+      @import-level="importLevel"
+      @replace-level="replaceImportedLevel"
+      @copy-level="copyImportedLevel"
+      @replace-project="replaceProjectFromBackup"
+    />
+    <ExportDialog
+      :open="isExportDialogOpen"
+      @close="isExportDialogOpen = false"
+      @export-level="exportCurrentLevel"
+      @export-project="exportProjectBackup"
     />
   </section>
 </template>
@@ -254,6 +344,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
 .empty-state p:first-child {
   color: #475569;
   font-weight: 600;
+}
+
+.editor-import-input {
+  display: none;
 }
 
 @media (max-width: 1000px) {

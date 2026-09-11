@@ -2,7 +2,9 @@ import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
 import {
+  addProjectLevel,
   addPathCells,
+  cloneLevelConfig,
   createEditorProject,
   createProjectLevel,
   createJunctionConfig,
@@ -50,6 +52,8 @@ import {
   ProjectPersistenceError,
 } from '@/persistence';
 import type { PersistedProjectState, ProjectRepository } from '@/persistence';
+import { serializeLevelConfig, serializeProjectBackup } from '@/io';
+import type { JsonExportFile, ProjectBackupFile } from '@/io';
 
 interface PendingEditTransaction {
   readonly label: string;
@@ -155,6 +159,13 @@ export const useEditorStore = defineStore('editor', () => {
     focusedValidationIssue.value = null;
     routePreviewRun.value = null;
     lastStrokeCell.value = null;
+  }
+  function cancelScheduledPersistence(): void {
+    if (autosaveTimer !== null) {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = null;
+    }
+    persistenceGeneration += 1;
   }
   function schedulePersistence(): void {
     if (!persistenceReady.value) return;
@@ -387,6 +398,59 @@ export const useEditorStore = defineStore('editor', () => {
     project.value = nextProject;
     openLevel(nextLevel.level);
   }
+  function addImportedLevel(level: LevelConfig): boolean {
+    finishStrokeTransaction();
+    const nextProject = addProjectLevel(project.value, level);
+    if (nextProject === project.value) return false;
+    cancelScheduledPersistence();
+    project.value = nextProject;
+    openLevel(level.level);
+    return true;
+  }
+  function replaceImportedLevel(level: LevelConfig): boolean {
+    finishStrokeTransaction();
+    const nextProject = replaceProjectLevel(project.value, level.level, level);
+    if (nextProject === project.value) return false;
+    cancelScheduledPersistence();
+    project.value = nextProject;
+    openLevel(level.level);
+    return true;
+  }
+  function addImportedLevelAsCopy(level: LevelConfig): boolean {
+    finishStrokeTransaction();
+    const copy = cloneLevelConfig(level);
+    copy.level = {
+      chapter: level.level.chapter,
+      stage: getNextAvailableStage(project.value, level.level.chapter),
+    };
+    const nextProject = addProjectLevel(project.value, copy);
+    if (nextProject === project.value) return false;
+    cancelScheduledPersistence();
+    project.value = nextProject;
+    openLevel(copy.level);
+    return true;
+  }
+  function replaceProjectFromBackup(backup: ProjectBackupFile): void {
+    finishStrokeTransaction();
+    cancelScheduledPersistence();
+    const restoredProject = { ...backup.project, id: project.value.id };
+    const activeLevel =
+      findProjectLevel(restoredProject, backup.activeLevelAddress) ??
+      sortProjectLevels(restoredProject)[0];
+    if (activeLevel === undefined) return;
+    project.value = restoredProject;
+    activeLevelAddress.value = { ...activeLevel.level };
+    workingLevel.value = activeLevel;
+    resetLevelSession();
+  }
+  function createCurrentLevelExport(): JsonExportFile {
+    finishStrokeTransaction();
+    return serializeLevelConfig(workingLevel.value);
+  }
+  function createProjectBackupExport(): JsonExportFile {
+    finishStrokeTransaction();
+    return serializeProjectBackup(project.value, activeLevelAddress.value);
+  }
   function applyToolAt(position: GridPosition): void {
     if (activeTool.value === 'select') {
       selection.value = selectAt(workingLevel.value, position);
@@ -506,12 +570,18 @@ export const useEditorStore = defineStore('editor', () => {
     focusValidationIssue,
     startRoutePreview,
     closeRoutePreview,
+    createCurrentLevelExport,
+    createProjectBackupExport,
     initializePersistence,
     flushPersistence,
     openLevel,
     createLevel,
     duplicateCurrentLevel,
     deleteCurrentLevel,
+    addImportedLevel,
+    replaceImportedLevel,
+    addImportedLevelAsCopy,
+    replaceProjectFromBackup,
     setSelectedTowerLocked,
     createSelectedJunctionConfig,
     removeSelectedJunctionConfig,

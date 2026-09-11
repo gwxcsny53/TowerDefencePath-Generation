@@ -7,7 +7,14 @@ defineProps<{
   persistenceStatus: 'loading' | 'saved' | 'saving' | 'error';
   persistenceError: string | null;
 }>();
-const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>();
+const emit = defineEmits<{
+  undo: [];
+  redo: [];
+  validate: [];
+  'test-route': [];
+  import: [];
+  export: [];
+}>();
 </script>
 
 <template>
@@ -31,8 +38,8 @@ const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>
         }}
       </span>
       <button type="button" disabled>项目</button>
-      <button type="button" disabled>导入</button>
-      <button type="button" disabled>导出</button>
+      <button type="button" @click="emit('import')">导入</button>
+      <button type="button" @click="emit('export')">导出</button>
       <button type="button" :disabled="!canUndo" title="撤销（Ctrl/Cmd+Z）" @click="emit('undo')">
         撤销
       </button>
