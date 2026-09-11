@@ -44,7 +44,7 @@ export const useEditorStore = defineStore('editor', () => {
         selection.value !== null &&
         positions.some((cell) => samePosition(cell, selection.value!.position))
       )
-        selection.value = null;
+        reconcileSelectionAtCurrentPosition();
     }
     lastStrokeCell.value = position;
   }
@@ -63,7 +63,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (activeTool.value === 'eraser') {
       workingLevel.value = eraseCell(workingLevel.value, position);
       if (selection.value !== null && samePosition(selection.value.position, position))
-        selection.value = null;
+        reconcileSelectionAtCurrentPosition();
       return;
     }
     const previous = workingLevel.value;
@@ -79,6 +79,10 @@ export const useEditorStore = defineStore('editor', () => {
   function setSelectedTowerLocked(locked: boolean): void {
     if (selection.value?.kind !== 'tower') return;
     workingLevel.value = setTowerLocked(workingLevel.value, selection.value.id, locked);
+  }
+  function reconcileSelectionAtCurrentPosition(): void {
+    if (selection.value !== null)
+      selection.value = selectAt(workingLevel.value, selection.value.position);
   }
   function withSelectedJunction(update: (position: GridPosition) => void): void {
     if (selection.value?.kind === 'junction') update(selection.value.position);

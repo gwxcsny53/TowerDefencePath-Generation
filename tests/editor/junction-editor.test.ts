@@ -59,4 +59,22 @@ describe('junction editor', () => {
     });
     expect(selectAt(stale, position)).toMatchObject({ kind: 'junction' });
   });
+  it('does not create configs on normal paths and chooses the first unused junction id', () => {
+    const normal = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+    });
+    expect(selectAt(normal, { x: 0, y: 0 })?.kind).not.toBe('junction');
+    expect(createJunctionConfig(normal, { x: 0, y: 0 })).toBe(normal);
+    const level = {
+      ...candidate(),
+      junctions: [
+        { id: 'junction_01', x: 0, y: 0, transitions: [] },
+        { id: 'junction_03', x: 3, y: 3, transitions: [] },
+      ],
+    };
+    expect(createJunctionConfig(level, position).junctions.at(-1)?.id).toBe('junction_02');
+  });
 });

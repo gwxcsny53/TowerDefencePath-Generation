@@ -13,12 +13,17 @@ describe('getJunctionRenderItems', () => {
     ]),
   );
   it('classifies unconfigured, configured, and stale junctions', () => {
-    expect(getJunctionRenderItems(graph, [])).toMatchObject([{ kind: 'candidate-unconfigured' }]);
+    expect(getJunctionRenderItems(graph, [])).toMatchObject([
+      { kind: 'candidate-unconfigured', position: { x: 1, y: 1 } },
+    ]);
     expect(
       getJunctionRenderItems(graph, [{ id: 'junction_01', x: 1, y: 1, transitions: [] }]),
-    ).toMatchObject([{ kind: 'candidate-configured' }]);
+    ).toMatchObject([{ kind: 'candidate-configured', position: { x: 1, y: 1 } }]);
     expect(
       getJunctionRenderItems(graph, [{ id: 'junction_01', x: 0, y: 0, transitions: [] }]),
-    ).toMatchObject([{ kind: 'candidate-unconfigured' }, { kind: 'stale-config' }]);
+    ).toMatchObject([
+      { kind: 'candidate-unconfigured', position: { x: 1, y: 1 } },
+      { kind: 'stale-config', position: { x: 0, y: 0 } },
+    ]);
   });
 });
