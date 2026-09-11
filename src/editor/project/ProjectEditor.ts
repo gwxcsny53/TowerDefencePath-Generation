@@ -100,7 +100,8 @@ export function replaceProjectLevel(
   address: LevelAddress,
   replacement: LevelConfig,
 ): EditorProject {
-  if (findProjectLevel(project, address) === null) return project;
+  const currentLevel = findProjectLevel(project, address);
+  if (currentLevel === null || currentLevel === replacement) return project;
   return {
     ...project,
     levels: project.levels.map((level) =>

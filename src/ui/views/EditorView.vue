@@ -30,6 +30,8 @@ const {
   routePreviewDisabledReason,
   project,
   activeLevelAddress,
+  persistenceStatus,
+  persistenceError,
 } = storeToRefs(editorStore);
 const isNewLevelDialogOpen = ref(false);
 const selectedPosition = computed(() => selection.value?.position ?? null);
@@ -92,6 +94,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :can-redo="canRedo"
       :can-test-route="canTestRoute"
       :test-route-title="routePreviewDisabledReason"
+      :persistence-status="persistenceStatus"
+      :persistence-error="persistenceError"
       @undo="editorStore.undo"
       @redo="editorStore.redo"
       @validate="editorStore.runValidation"

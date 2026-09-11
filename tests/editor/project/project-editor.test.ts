@@ -147,6 +147,7 @@ describe('EditorProject', () => {
 
     expect(replaced.levels[0]).toBe(first);
     expect(replaced.levels[1]).toBe(replacement);
+    expect(replaceProjectLevel(replaced, { chapter: 1, stage: 2 }, replacement)).toBe(replaced);
     expect(deleted.levels).toEqual([first]);
     expect(deleteProjectLevel(deleted, { chapter: 1, stage: 1 })).toBe(deleted);
     expect(project.levels[1]).toBe(second);

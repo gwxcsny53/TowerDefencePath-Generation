@@ -4,6 +4,8 @@ defineProps<{
   canRedo: boolean;
   canTestRoute: boolean;
   testRouteTitle: string;
+  persistenceStatus: 'loading' | 'saved' | 'saving' | 'error';
+  persistenceError: string | null;
 }>();
 const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>();
 </script>
@@ -13,6 +15,21 @@ const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>
     <h1 class="top-toolbar-title">Tower Defense Path Editor</h1>
 
     <nav class="top-toolbar-actions" aria-label="编辑器操作">
+      <span
+        class="top-toolbar-persistence"
+        :class="`top-toolbar-persistence--${persistenceStatus}`"
+        :title="persistenceError ?? undefined"
+      >
+        {{
+          persistenceStatus === 'loading'
+            ? '读取中'
+            : persistenceStatus === 'saving'
+              ? '保存中'
+              : persistenceStatus === 'error'
+                ? '保存失败'
+                : '已保存'
+        }}
+      </span>
       <button type="button" disabled>项目</button>
       <button type="button" disabled>导入</button>
       <button type="button" disabled>导出</button>
@@ -81,5 +98,15 @@ const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>
 
 .top-toolbar-actions button:disabled {
   opacity: 0.8;
+}
+
+.top-toolbar-persistence {
+  color: var(--color-toolbar-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.top-toolbar-persistence--error {
+  color: #fca5a5;
 }
 </style>

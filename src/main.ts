@@ -3,8 +3,15 @@ import { createPinia } from 'pinia';
 
 import App from './App.vue';
 import './style.css';
+import { useEditorStore } from './ui/stores/editorStore';
 
-const app = createApp(App);
+async function bootstrap(): Promise<void> {
+  const app = createApp(App);
+  const pinia = createPinia();
 
-app.use(createPinia());
-app.mount('#app');
+  app.use(pinia);
+  await useEditorStore(pinia).initializePersistence();
+  app.mount('#app');
+}
+
+void bootstrap();

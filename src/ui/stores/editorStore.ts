@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import {
   addPathCells,
@@ -43,6 +43,13 @@ import {
 } from '@/editor/history';
 import type { EditorSnapshot } from '@/editor/history';
 import type { EditorSelection, EditorTool } from '@/editor';
+import {
+  indexedDbProjectRepository,
+  PersistedProjectStateSchema,
+  PROJECT_PERSISTENCE_SCHEMA_VERSION,
+  ProjectPersistenceError,
+} from '@/persistence';
+import type { PersistedProjectState, ProjectRepository } from '@/persistence';
 
 interface PendingEditTransaction {
   readonly label: string;
@@ -50,6 +57,9 @@ interface PendingEditTransaction {
 }
 
 export type ValidationStatus = 'not-run' | 'passed' | 'failed' | 'stale';
+export type PersistenceStatus = 'loading' | 'saved' | 'saving' | 'error';
+
+const PERSISTENCE_DEBOUNCE_MS = 300;
 
 export interface ValidationRun {
   readonly level: LevelConfig;
@@ -74,6 +84,9 @@ export const useEditorStore = defineStore('editor', () => {
   const routePreviewRun = ref<RoutePreviewRun | null>(null);
   const focusedValidationIssue = ref<ValidationIssue | null>(null);
   const lastStrokeCell = ref<GridPosition | null>(null);
+  const persistenceStatus = ref<PersistenceStatus>('loading');
+  const persistenceError = ref<string | null>(null);
+  const persistenceReady = ref(false);
   const canUndo = computed(() => canUndoEditorHistory(history.value));
   const canRedo = computed(() => canRedoEditorHistory(history.value));
   const isValidationCurrent = computed(
@@ -121,8 +134,15 @@ export const useEditorStore = defineStore('editor', () => {
     return '测试路线';
   });
   let pendingStroke: PendingEditTransaction | null = null;
+  let activeProjectRepository: ProjectRepository = indexedDbProjectRepository;
+  let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+  let persistenceGeneration = 0;
+
+  // Project synchronization stays explicit in setWorkingLevel; this watcher only persists it.
+  watch([project, activeLevelAddress], () => schedulePersistence(), { flush: 'sync' });
 
   function setWorkingLevel(level: LevelConfig): void {
+    if (level === workingLevel.value) return;
     project.value = replaceProjectLevel(project.value, activeLevelAddress.value, level);
     workingLevel.value = level;
     if (routePreviewRun.value !== null && routePreviewRun.value.level !== level)
@@ -135,6 +155,84 @@ export const useEditorStore = defineStore('editor', () => {
     focusedValidationIssue.value = null;
     routePreviewRun.value = null;
     lastStrokeCell.value = null;
+  }
+  function schedulePersistence(): void {
+    if (!persistenceReady.value) return;
+    if (autosaveTimer !== null) clearTimeout(autosaveTimer);
+    const generation = ++persistenceGeneration;
+    autosaveTimer = setTimeout(() => {
+      autosaveTimer = null;
+      void savePersistence(generation);
+    }, PERSISTENCE_DEBOUNCE_MS);
+  }
+  async function savePersistence(generation: number): Promise<void> {
+    if (!persistenceReady.value) return;
+    persistenceStatus.value = 'saving';
+    try {
+      const state = createPersistedProjectState();
+      await activeProjectRepository.save(state);
+      if (generation === persistenceGeneration) {
+        persistenceStatus.value = 'saved';
+        persistenceError.value = null;
+      }
+    } catch (error) {
+      if (generation === persistenceGeneration) {
+        persistenceStatus.value = 'error';
+        persistenceError.value = getPersistenceErrorMessage(error);
+      }
+    }
+  }
+  function createPersistedProjectState(): PersistedProjectState {
+    return PersistedProjectStateSchema.parse({
+      schemaVersion: PROJECT_PERSISTENCE_SCHEMA_VERSION,
+      project: project.value,
+      activeLevelAddress: activeLevelAddress.value,
+      updatedAt: Date.now(),
+    });
+  }
+  async function flushPersistence(): Promise<void> {
+    if (!persistenceReady.value) return;
+    if (autosaveTimer !== null) {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = null;
+    }
+    await savePersistence(++persistenceGeneration);
+  }
+  async function initializePersistence(
+    repository: ProjectRepository = indexedDbProjectRepository,
+  ): Promise<void> {
+    if (autosaveTimer !== null) {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = null;
+    }
+    persistenceReady.value = false;
+    persistenceStatus.value = 'loading';
+    persistenceError.value = null;
+    activeProjectRepository = repository;
+    try {
+      const persisted = await activeProjectRepository.load(project.value.id);
+      if (persisted === null) {
+        persistenceReady.value = true;
+        await flushPersistence();
+        return;
+      }
+      const activeLevel =
+        findProjectLevel(persisted.project, persisted.activeLevelAddress) ??
+        sortProjectLevels(persisted.project)[0];
+      if (activeLevel === undefined) throw new Error('Persisted project must contain a level.');
+      project.value = persisted.project;
+      activeLevelAddress.value = { ...activeLevel.level };
+      workingLevel.value = activeLevel;
+      pendingStroke = null;
+      resetLevelSession();
+      activeTool.value = 'select';
+      persistenceReady.value = true;
+      persistenceStatus.value = 'saved';
+    } catch (error) {
+      persistenceReady.value = false;
+      persistenceStatus.value = 'error';
+      persistenceError.value = getPersistenceErrorMessage(error);
+    }
   }
 
   function captureSnapshot(): EditorSnapshot {
@@ -379,6 +477,9 @@ export const useEditorStore = defineStore('editor', () => {
     workingLevel,
     activeTool,
     selection,
+    persistenceStatus,
+    persistenceError,
+    persistenceReady,
     canUndo,
     canRedo,
     validationRun,
@@ -405,6 +506,8 @@ export const useEditorStore = defineStore('editor', () => {
     focusValidationIssue,
     startRoutePreview,
     closeRoutePreview,
+    initializePersistence,
+    flushPersistence,
     openLevel,
     createLevel,
     duplicateCurrentLevel,
@@ -420,4 +523,9 @@ export const useEditorStore = defineStore('editor', () => {
 
 function samePosition(left: GridPosition, right: GridPosition): boolean {
   return left.x === right.x && left.y === right.y;
+}
+
+function getPersistenceErrorMessage(error: unknown): string {
+  if (error instanceof ProjectPersistenceError) return error.message;
+  return error instanceof Error ? error.message : 'Unable to persist project data.';
 }
