@@ -64,7 +64,7 @@ const selectedPosition = computed(() => selection.value?.position ?? null);
 
 .editor-workspace {
   display: grid;
-  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(260px, 300px);
+  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(340px, 380px);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -142,7 +142,7 @@ const selectedPosition = computed(() => selection.value?.position ?? null);
 
 @media (max-width: 1000px) {
   .editor-workspace {
-    grid-template-columns: minmax(160px, 200px) minmax(0, 1fr) minmax(220px, 260px);
+    grid-template-columns: minmax(160px, 200px) minmax(0, 1fr) minmax(280px, 320px);
   }
 }
 </style>

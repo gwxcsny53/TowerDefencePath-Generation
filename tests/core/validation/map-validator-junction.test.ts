@@ -69,6 +69,34 @@ describe('MapValidator junction validation', () => {
     expect(codes(level)).toContain('JUNCTION_DIRECTION_INVALID');
   });
 
+  it('reports a direction used as an exit and another transition entry', () => {
+    const level = createTJunction([
+      { enterFrom: 'left', exits: [{ exitTo: 'right', weight: 1 }] },
+      { enterFrom: 'right', exits: [{ exitTo: 'up', weight: 1 }] },
+    ]);
+
+    expect(codes(level)).toContain('JUNCTION_DIRECTION_INVALID');
+  });
+
+  it('allows a merge and fork when every direction has one global role', () => {
+    const merge = createTJunction([
+      { enterFrom: 'up', exits: [{ exitTo: 'right', weight: 1 }] },
+      { enterFrom: 'left', exits: [{ exitTo: 'right', weight: 1 }] },
+    ]);
+    const fork = createTJunction([
+      {
+        enterFrom: 'left',
+        exits: [
+          { exitTo: 'up', weight: 0.5 },
+          { exitTo: 'right', weight: 0.5 },
+        ],
+      },
+    ]);
+
+    expect(codes(merge)).not.toContain('JUNCTION_DIRECTION_INVALID');
+    expect(codes(fork)).not.toContain('JUNCTION_DIRECTION_INVALID');
+  });
+
   it.each([
     ['negative', -0.1],
     ['zero', 0],

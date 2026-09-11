@@ -46,6 +46,37 @@ describe('junction editor', () => {
       getJunctionEditorState(manual, position).transitions[0].exits.map((item) => item.weight),
     ).toEqual([0.8, 0.5]);
     expect(setJunctionExitWeight(manual, position, 'left', 'up', 0)).toBe(manual);
+    expect(getJunctionEditorState(manual, position)).toMatchObject({
+      entryDirections: ['left'],
+      exitDirections: ['up', 'right'],
+      conflictingDirections: [],
+    });
+    expect(setJunctionEntryEnabled(manual, position, 'right', true)).toBe(manual);
+  });
+  it('keeps legacy role conflicts visible and lets enabled directions be disabled to repair them', () => {
+    const level = {
+      ...candidate(),
+      junctions: [
+        {
+          id: 'junction_01',
+          x: position.x,
+          y: position.y,
+          transitions: [
+            { enterFrom: 'left' as const, exits: [{ exitTo: 'right' as const, weight: 1 }] },
+            { enterFrom: 'right' as const, exits: [{ exitTo: 'up' as const, weight: 1 }] },
+          ],
+        },
+      ],
+    };
+
+    expect(getJunctionEditorState(level, position)).toMatchObject({
+      entryDirections: ['left', 'right'],
+      exitDirections: ['up', 'right'],
+      conflictingDirections: ['right'],
+    });
+    expect(
+      getJunctionEditorState(setJunctionEntryEnabled(level, position, 'right', false), position),
+    ).toMatchObject({ conflictingDirections: [] });
   });
   it('keeps stale configs selectable after topology changes', () => {
     const configured = createJunctionConfig(candidate(), position);

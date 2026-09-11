@@ -17,6 +17,9 @@ export interface JunctionEditorState {
   readonly position: Readonly<GridPosition>;
   readonly isCandidate: boolean;
   readonly physicalDirections: readonly Direction[];
+  readonly entryDirections: readonly Direction[];
+  readonly exitDirections: readonly Direction[];
+  readonly conflictingDirections: readonly Direction[];
   readonly junctionId: string | null;
   readonly transitions: readonly JunctionEditorTransition[];
 }
@@ -31,16 +34,26 @@ export function getJunctionEditorState(
   const physicalDirections = DIRECTIONS.filter((direction) =>
     node?.neighbors.some((neighbor) => neighbor.direction === direction),
   );
+  const transitions =
+    junction?.transitions.map((transition) => ({
+      enterFrom: transition.enterFrom,
+      exits: transition.exits.map((exit) => ({ ...exit })),
+    })) ?? [];
+  const entryDirectionSet = new Set(transitions.map((transition) => transition.enterFrom));
+  const exitDirectionSet = new Set(
+    transitions.flatMap((transition) => transition.exits.map((exit) => exit.exitTo)),
+  );
   return {
     position: { x: position.x, y: position.y },
     isCandidate: node?.kind === 'junction',
     physicalDirections,
+    entryDirections: DIRECTIONS.filter((direction) => entryDirectionSet.has(direction)),
+    exitDirections: DIRECTIONS.filter((direction) => exitDirectionSet.has(direction)),
+    conflictingDirections: DIRECTIONS.filter(
+      (direction) => entryDirectionSet.has(direction) && exitDirectionSet.has(direction),
+    ),
     junctionId: junction?.id ?? null,
-    transitions:
-      junction?.transitions.map((transition) => ({
-        enterFrom: transition.enterFrom,
-        exits: transition.exits.map((exit) => ({ ...exit })),
-      })) ?? [],
+    transitions,
   };
 }
 export function createJunctionConfig(level: LevelConfig, position: GridPosition): LevelConfig {
@@ -84,7 +97,12 @@ export function setJunctionEntryEnabled(
           transitions: junction.transitions.filter((item) => item.enterFrom !== enterFrom),
         })
       : level;
-  if (exists || !getJunctionEditorState(level, position).physicalDirections.includes(enterFrom))
+  const state = getJunctionEditorState(level, position);
+  if (
+    exists ||
+    !state.physicalDirections.includes(enterFrom) ||
+    state.exitDirections.includes(enterFrom)
+  )
     return level;
   return updateJunction(level, position, {
     ...junction,
@@ -109,8 +127,14 @@ export function setJunctionExitEnabled(
           exits: redistribute(transition.exits.filter((item) => item.exitTo !== exitTo)),
         })
       : level;
-  const physical = getJunctionEditorState(level, position).physicalDirections;
-  if (exists || exitTo === enterFrom || !physical.includes(exitTo)) return level;
+  const state = getJunctionEditorState(level, position);
+  if (
+    exists ||
+    exitTo === enterFrom ||
+    !state.physicalDirections.includes(exitTo) ||
+    state.entryDirections.includes(exitTo)
+  )
+    return level;
   return replaceTransition(level, position, enterFrom, {
     ...transition,
     exits: redistribute([...transition.exits, { exitTo, weight: 1 }]),

@@ -185,6 +185,7 @@ export class MapValidator {
     const physicalDirections = new Set(node.neighbors.map((neighbor) => neighbor.direction));
     const exitsByEntry = new Map<Direction, readonly JunctionExit[]>();
     const configuredEntries = new Set<Direction>();
+    const configuredExitDirections = new Set<Direction>();
 
     for (const transition of junction.transitions) {
       const entryIsPhysical = physicalDirections.has(transition.enterFrom);
@@ -219,6 +220,7 @@ export class MapValidator {
         }
 
         configuredExits.add(exit.exitTo);
+        configuredExitDirections.add(exit.exitTo);
         weightSum += exit.weight;
 
         if (
@@ -240,6 +242,12 @@ export class MapValidator {
       if (entryIsPhysical && !entryIsDuplicate) {
         exitsByEntry.set(transition.enterFrom, validExits);
       }
+    }
+
+    if (
+      Array.from(configuredEntries).some((direction) => configuredExitDirections.has(direction))
+    ) {
+      MapValidator.addIssue(issues, 'JUNCTION_DIRECTION_INVALID', junction);
     }
 
     return { exitsByEntry };
