@@ -1,3 +1,8 @@
+<script setup lang="ts">
+defineProps<{ canUndo: boolean; canRedo: boolean }>();
+const emit = defineEmits<{ undo: []; redo: [] }>();
+</script>
+
 <template>
   <header class="top-toolbar">
     <h1 class="top-toolbar-title">Tower Defense Path Editor</h1>
@@ -6,8 +11,17 @@
       <button type="button" disabled>项目</button>
       <button type="button" disabled>导入</button>
       <button type="button" disabled>导出</button>
-      <button type="button" disabled>撤销</button>
-      <button type="button" disabled>重做</button>
+      <button type="button" :disabled="!canUndo" title="撤销（Ctrl/Cmd+Z）" @click="emit('undo')">
+        撤销
+      </button>
+      <button
+        type="button"
+        :disabled="!canRedo"
+        title="重做（Ctrl/Cmd+Y 或 Ctrl/Cmd+Shift+Z）"
+        @click="emit('redo')"
+      >
+        重做
+      </button>
       <button type="button" disabled>校验</button>
       <button type="button" disabled>测试路线</button>
     </nav>

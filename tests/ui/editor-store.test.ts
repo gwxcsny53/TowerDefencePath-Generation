@@ -22,4 +22,151 @@ describe('editor store selection reconciliation', () => {
     expect(store.workingLevel.junctions).toHaveLength(1);
     expect(store.selection).toMatchObject({ kind: 'junction' });
   });
+
+  it('records a whole path drag as one command and restores it with undo and redo', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.continueStroke({ x: 5, y: 0 });
+    store.continueStroke({ x: 5, y: 5 });
+    store.endStroke();
+
+    expect(store.canUndo).toBe(true);
+    expect(store.workingLevel.pathCells).toHaveLength(11);
+    store.undo();
+    expect(store.workingLevel.pathCells).toHaveLength(0);
+    expect(store.canRedo).toBe(true);
+    store.redo();
+    expect(store.workingLevel.pathCells).toHaveLength(11);
+  });
+
+  it('records a whole eraser drag and restores all erased cells', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+    });
+    store.setActiveTool('eraser');
+    store.beginStroke({ x: 0, y: 0 });
+    store.continueStroke({ x: 2, y: 0 });
+    store.endStroke();
+
+    expect(store.workingLevel.pathCells).toHaveLength(0);
+    store.undo();
+    expect(store.workingLevel.pathCells).toHaveLength(3);
+  });
+
+  it('restores tower selection and lock state through undo and redo', () => {
+    const store = useEditorStore();
+    store.setActiveTool('tower');
+    store.beginStroke({ x: 1, y: 1 });
+    expect(store.selection).toMatchObject({ kind: 'tower', id: 'tower_01' });
+    store.undo();
+    expect(store.selection).toBeNull();
+    expect(store.workingLevel.towerNodes).toHaveLength(0);
+    store.redo();
+    expect(store.selection).toMatchObject({ kind: 'tower', id: 'tower_01' });
+
+    store.setSelectedTowerLocked(true);
+    expect(store.workingLevel.towerNodes[0]?.locked).toBe(true);
+    store.undo();
+    expect(store.workingLevel.towerNodes[0]?.locked).toBe(false);
+    store.redo();
+    expect(store.workingLevel.towerNodes[0]?.locked).toBe(true);
+  });
+
+  it('undoes and redoes endpoint placement without recording invalid edits', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+    });
+    store.setActiveTool('spawn');
+    store.beginStroke({ x: 0, y: 0 });
+    expect(store.workingLevel.spawnPoints).toHaveLength(1);
+    store.undo();
+    expect(store.workingLevel.spawnPoints).toHaveLength(0);
+    expect(store.canRedo).toBe(true);
+
+    store.beginStroke({ x: 1, y: 1 });
+    expect(store.canRedo).toBe(true);
+    store.redo();
+    expect(store.workingLevel.spawnPoints).toHaveLength(1);
+
+    store.setActiveTool('end');
+    store.beginStroke({ x: 1, y: 0 });
+    expect(store.workingLevel.endPoints).toHaveLength(1);
+    store.undo();
+    expect(store.workingLevel.endPoints).toHaveLength(0);
+    store.redo();
+    expect(store.workingLevel.endPoints).toHaveLength(1);
+  });
+
+  it('records each junction edit and restores the selection with a deleted stale config', () => {
+    const store = useEditorStore();
+    const position = { x: 1, y: 1 };
+    store.workingLevel = createLevel({
+      grid: { rows: 4, cols: 4 },
+      pathCells: [position, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 2, y: 1 }],
+    });
+    store.selection = { kind: 'junction', position };
+    store.createSelectedJunctionConfig();
+    expect(store.workingLevel.junctions).toHaveLength(1);
+    store.undo();
+    expect(store.workingLevel.junctions).toHaveLength(0);
+    store.redo();
+    expect(store.workingLevel.junctions).toHaveLength(1);
+    const configured = store.workingLevel;
+    store.setSelectedJunctionEntryEnabled('left', true);
+    store.setSelectedJunctionExitEnabled('left', 'up', true);
+    store.setSelectedJunctionExitEnabled('left', 'right', true);
+    expect(
+      store.workingLevel.junctions[0]?.transitions[0]?.exits.map((exit) => exit.weight),
+    ).toEqual([0.5, 0.5]);
+    store.undo();
+    expect(store.workingLevel.junctions[0]?.transitions[0]?.exits).toHaveLength(1);
+    store.redo();
+    store.setSelectedJunctionExitWeight('left', 'up', 0.8);
+    expect(store.workingLevel.junctions[0]?.transitions[0]?.exits[0]?.weight).toBe(0.8);
+    store.undo();
+    expect(store.workingLevel.junctions[0]?.transitions[0]?.exits[0]?.weight).toBe(0.5);
+
+    store.workingLevel = {
+      ...configured,
+      pathCells: configured.pathCells.filter((cell) => cell.x !== 2 || cell.y !== 1),
+    };
+    store.selection = { kind: 'junction', position };
+    store.clearHistory();
+    store.removeSelectedJunctionConfig();
+    expect(store.selection).toMatchObject({ kind: 'path' });
+    store.undo();
+    expect(store.workingLevel.junctions).toHaveLength(1);
+    expect(store.selection).toMatchObject({ kind: 'junction' });
+  });
+
+  it('does not record selections or tool switches and invalidates redo only after a real edit', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.endStroke();
+    store.undo();
+    expect(store.canRedo).toBe(true);
+
+    store.setActiveTool('select');
+    store.beginStroke({ x: 2, y: 2 });
+    store.setActiveTool('tower');
+    store.beginStroke({ x: 20, y: 0 });
+    expect(store.canRedo).toBe(true);
+
+    store.setActiveTool('path');
+    store.beginStroke({ x: 1, y: 0 });
+    store.endStroke();
+    expect(store.canRedo).toBe(false);
+    expect(store.activeTool).toBe('path');
+  });
 });

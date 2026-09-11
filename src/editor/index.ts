@@ -28,3 +28,21 @@ export type {
   JunctionEditorState,
   JunctionEditorTransition,
 } from './JunctionEditor';
+export {
+  canRedoEditorHistory,
+  canUndoEditorHistory,
+  clearEditorHistory,
+  cloneEditorSelection,
+  createEditorHistory,
+  createEditorSnapshot,
+  DEFAULT_HISTORY_LIMIT,
+  recordEditorCommand,
+  redoEditorHistory,
+  undoEditorHistory,
+} from './history';
+export type {
+  EditorCommand,
+  EditorHistoryOperation,
+  EditorHistoryState,
+  EditorSnapshot,
+} from './history';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
 import MapCanvas from '@/ui/components/MapCanvas.vue';
@@ -10,13 +10,41 @@ import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
 
 const editorStore = useEditorStore();
-const { workingLevel, activeTool, selection } = storeToRefs(editorStore);
+const { workingLevel, activeTool, selection, canUndo, canRedo } = storeToRefs(editorStore);
 const selectedPosition = computed(() => selection.value?.position ?? null);
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.matches('input, textarea, select') || target.isContentEditable)
+  );
+}
+
+function handleKeyDown(event: KeyboardEvent): void {
+  if ((!event.ctrlKey && !event.metaKey) || isEditableTarget(event.target)) return;
+  const key = event.key.toLowerCase();
+  if (key === 'z') {
+    event.preventDefault();
+    if (event.shiftKey) editorStore.redo();
+    else editorStore.undo();
+  } else if (key === 'y') {
+    event.preventDefault();
+    editorStore.redo();
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeyDown));
+onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
 </script>
 
 <template>
   <section class="editor-view" aria-label="塔防关卡编辑器">
-    <TopToolbar />
+    <TopToolbar
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      @undo="editorStore.undo"
+      @redo="editorStore.redo"
+    />
 
     <main class="editor-workspace">
       <aside class="editor-level-area" aria-label="关卡列表">
