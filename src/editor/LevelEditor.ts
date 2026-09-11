@@ -4,6 +4,7 @@ import { LEVEL_CONFIG_VERSION } from '@/core/model';
 import type { GridPosition, LevelConfig } from '@/core/model';
 
 import type { EditorSelection } from './EditorSelection';
+import { isJunctionSelectable } from './JunctionEditor';
 
 export function createEmptyLevelConfig(chapter = 1, stage = 1, rows = 20, cols = 20): LevelConfig {
   return {
@@ -152,6 +153,8 @@ export function selectAt(level: LevelConfig, position: GridPosition): EditorSele
     return { kind: 'spawn', id: spawn.id, position: { x: spawn.x, y: spawn.y } };
   const end = level.endPoints.find(isAtPosition(position));
   if (end !== undefined) return { kind: 'end', id: end.id, position: { x: end.x, y: end.y } };
+  if (isJunctionSelectable(level, position))
+    return { kind: 'junction', position: { x: position.x, y: position.y } };
   return level.pathCells.some(isAtPosition(position))
     ? { kind: 'path', position: { x: position.x, y: position.y } }
     : null;

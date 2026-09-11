@@ -14,3 +14,17 @@ export {
   setTowerLocked,
 } from './LevelEditor';
 export { rasterizeOrthogonalSegment } from './OrthogonalStroke';
+export {
+  createJunctionConfig,
+  getJunctionEditorState,
+  isJunctionSelectable,
+  removeJunctionConfig,
+  setJunctionEntryEnabled,
+  setJunctionExitEnabled,
+  setJunctionExitWeight,
+} from './JunctionEditor';
+export type {
+  JunctionEditorExit,
+  JunctionEditorState,
+  JunctionEditorTransition,
+} from './JunctionEditor';

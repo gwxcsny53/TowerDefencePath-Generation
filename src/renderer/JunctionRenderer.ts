@@ -5,7 +5,32 @@ import type { Junction } from '@/core/model';
 import type { RenderTheme } from './RenderTheme';
 import type { RenderViewport } from './RenderViewport';
 
-/** Draws topology junction candidates and distinguishes configured candidates. */
+export type JunctionRenderKind = 'candidate-unconfigured' | 'candidate-configured' | 'stale-config';
+export interface JunctionRenderItem {
+  readonly position: Readonly<import('@/core/model').GridPosition>;
+  readonly kind: JunctionRenderKind;
+}
+export function getJunctionRenderItems(
+  graph: PathGraph,
+  junctions: readonly Junction[],
+): JunctionRenderItem[] {
+  const configured = new Map(junctions.map((junction) => [toGridPositionKey(junction), junction]));
+  const items: JunctionRenderItem[] = [];
+  for (const node of graph.getNodes())
+    if (node.kind === 'junction') {
+      const key = toGridPositionKey(node.position);
+      items.push({
+        position: node.position,
+        kind: configured.has(key) ? 'candidate-configured' : 'candidate-unconfigured',
+      });
+      configured.delete(key);
+    }
+  for (const junction of configured.values())
+    items.push({ position: junction, kind: 'stale-config' });
+  return items;
+}
+
+/** Draws topology junction candidates and configured or stale junctions. */
 export function renderJunctions(
   context: CanvasRenderingContext2D,
   graph: PathGraph,
@@ -17,19 +42,17 @@ export function renderJunctions(
     return;
   }
 
-  const configuredJunctionKeys = new Set(junctions.map(toGridPositionKey));
   const radius = Math.max(3, viewport.cellSize * theme.markerScale * 0.8);
 
   context.save();
   context.lineWidth = 2;
 
-  for (const node of graph.getNodes()) {
-    if (node.kind !== 'junction' || !viewport.isInBounds(node.position)) {
+  for (const item of getJunctionRenderItems(graph, junctions)) {
+    if (!viewport.isInBounds(item.position)) {
       continue;
     }
 
-    const center = viewport.gridCellCenter(node.position);
-    const isConfigured = configuredJunctionKeys.has(toGridPositionKey(node.position));
+    const center = viewport.gridCellCenter(item.position);
 
     context.beginPath();
     context.moveTo(center.x, center.y - radius);
@@ -38,11 +61,12 @@ export function renderJunctions(
     context.lineTo(center.x - radius, center.y);
     context.closePath();
 
-    if (isConfigured) {
+    if (item.kind === 'candidate-configured') {
       context.fillStyle = theme.configuredJunctionFill;
       context.fill();
     } else {
-      context.strokeStyle = theme.unconfiguredJunctionStroke;
+      context.strokeStyle =
+        item.kind === 'stale-config' ? theme.staleJunctionStroke : theme.unconfiguredJunctionStroke;
       context.stroke();
     }
   }

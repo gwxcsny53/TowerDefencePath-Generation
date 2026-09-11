@@ -2,9 +2,25 @@
 import { computed } from 'vue';
 import type { EditorSelection } from '@/editor';
 import type { LevelConfig } from '@/core/model';
+import JunctionPanel from './JunctionPanel.vue';
 
 const props = defineProps<{ level: LevelConfig; selection: EditorSelection | null }>();
-const emit = defineEmits<{ 'update-tower-locked': [locked: boolean] }>();
+const emit = defineEmits<{
+  'update-tower-locked': [locked: boolean];
+  'create-junction-config': [];
+  'remove-junction-config': [];
+  'junction-entry-enabled': [direction: import('@/core/model').Direction, enabled: boolean];
+  'junction-exit-enabled': [
+    enterFrom: import('@/core/model').Direction,
+    exitTo: import('@/core/model').Direction,
+    enabled: boolean,
+  ];
+  'junction-exit-weight': [
+    enterFrom: import('@/core/model').Direction,
+    exitTo: import('@/core/model').Direction,
+    weight: number,
+  ];
+}>();
 const tower = computed(() => {
   const selected = props.selection;
   if (selected?.kind !== 'tower') return undefined;
@@ -26,6 +42,20 @@ function updateTowerLocked(event: Event): void {
         <p>未选择对象</p>
         <p>选择地图元素后将在此显示属性</p>
       </div>
+      <JunctionPanel
+        v-else-if="selection.kind === 'junction'"
+        :level="level"
+        :position="selection.position"
+        @create="$emit('create-junction-config')"
+        @remove="$emit('remove-junction-config')"
+        @entry-enabled="(direction, enabled) => $emit('junction-entry-enabled', direction, enabled)"
+        @exit-enabled="
+          (enterFrom, exitTo, enabled) => $emit('junction-exit-enabled', enterFrom, exitTo, enabled)
+        "
+        @exit-weight="
+          (enterFrom, exitTo, weight) => $emit('junction-exit-weight', enterFrom, exitTo, weight)
+        "
+      />
       <dl v-else class="property-list">
         <template v-if="selection.kind === 'path'"
           ><dt>类型</dt>

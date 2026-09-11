@@ -38,6 +38,11 @@ const selectedPosition = computed(() => selection.value?.position ?? null);
           :level="workingLevel"
           :selection="selection"
           @update-tower-locked="editorStore.setSelectedTowerLocked"
+          @create-junction-config="editorStore.createSelectedJunctionConfig"
+          @remove-junction-config="editorStore.removeSelectedJunctionConfig"
+          @junction-entry-enabled="editorStore.setSelectedJunctionEntryEnabled"
+          @junction-exit-enabled="editorStore.setSelectedJunctionExitEnabled"
+          @junction-exit-weight="editorStore.setSelectedJunctionExitWeight"
         />
       </aside>
     </main>

@@ -8,6 +8,7 @@ export interface RenderTheme {
   lockedTowerFill: string;
   configuredJunctionFill: string;
   unconfiguredJunctionStroke: string;
+  staleJunctionStroke: string;
   gridLineWidth: number;
   pathInset: number;
   markerScale: number;
@@ -23,6 +24,7 @@ export const DEFAULT_RENDER_THEME: Readonly<RenderTheme> = {
   lockedTowerFill: '#a8a29e',
   configuredJunctionFill: '#8b5cf6',
   unconfiguredJunctionStroke: '#f59e0b',
+  staleJunctionStroke: '#ef4444',
   gridLineWidth: 1,
   pathInset: 1,
   markerScale: 0.3,

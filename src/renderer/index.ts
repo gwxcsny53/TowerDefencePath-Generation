@@ -5,3 +5,5 @@ export type { RenderTheme } from './RenderTheme';
 export { createRenderViewport, MAX_CELL_SIZE, RENDER_VIEWPORT_PADDING } from './RenderViewport';
 export type { CanvasPoint, CanvasSize, RenderViewport } from './RenderViewport';
 export { renderSelection } from './SelectionRenderer';
+export { getJunctionRenderItems } from './JunctionRenderer';
+export type { JunctionRenderItem, JunctionRenderKind } from './JunctionRenderer';

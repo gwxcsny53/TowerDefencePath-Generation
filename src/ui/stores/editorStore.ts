@@ -4,11 +4,16 @@ import { ref } from 'vue';
 import {
   addPathCells,
   createEmptyLevelConfig,
+  createJunctionConfig,
   eraseCell,
   placeEnd,
   placeSpawn,
   placeTower,
   rasterizeOrthogonalSegment,
+  removeJunctionConfig,
+  setJunctionEntryEnabled,
+  setJunctionExitEnabled,
+  setJunctionExitWeight,
   selectAt,
   setTowerLocked,
 } from '@/editor';
@@ -75,6 +80,65 @@ export const useEditorStore = defineStore('editor', () => {
     if (selection.value?.kind !== 'tower') return;
     workingLevel.value = setTowerLocked(workingLevel.value, selection.value.id, locked);
   }
+  function withSelectedJunction(update: (position: GridPosition) => void): void {
+    if (selection.value?.kind === 'junction') update(selection.value.position);
+  }
+  function createSelectedJunctionConfig(): void {
+    withSelectedJunction((position) => {
+      workingLevel.value = createJunctionConfig(workingLevel.value, position);
+    });
+  }
+  function removeSelectedJunctionConfig(): void {
+    withSelectedJunction((position) => {
+      const updated = removeJunctionConfig(workingLevel.value, position);
+      workingLevel.value = updated;
+      if (selectAt(updated, position)?.kind !== 'junction')
+        selection.value = selectAt(updated, position);
+    });
+  }
+  function setSelectedJunctionEntryEnabled(
+    direction: import('@/core/model').Direction,
+    enabled: boolean,
+  ): void {
+    withSelectedJunction((position) => {
+      workingLevel.value = setJunctionEntryEnabled(
+        workingLevel.value,
+        position,
+        direction,
+        enabled,
+      );
+    });
+  }
+  function setSelectedJunctionExitEnabled(
+    enterFrom: import('@/core/model').Direction,
+    exitTo: import('@/core/model').Direction,
+    enabled: boolean,
+  ): void {
+    withSelectedJunction((position) => {
+      workingLevel.value = setJunctionExitEnabled(
+        workingLevel.value,
+        position,
+        enterFrom,
+        exitTo,
+        enabled,
+      );
+    });
+  }
+  function setSelectedJunctionExitWeight(
+    enterFrom: import('@/core/model').Direction,
+    exitTo: import('@/core/model').Direction,
+    weight: number,
+  ): void {
+    withSelectedJunction((position) => {
+      workingLevel.value = setJunctionExitWeight(
+        workingLevel.value,
+        position,
+        enterFrom,
+        exitTo,
+        weight,
+      );
+    });
+  }
   return {
     workingLevel,
     activeTool,
@@ -84,6 +148,11 @@ export const useEditorStore = defineStore('editor', () => {
     continueStroke,
     endStroke,
     setSelectedTowerLocked,
+    createSelectedJunctionConfig,
+    removeSelectedJunctionConfig,
+    setSelectedJunctionEntryEnabled,
+    setSelectedJunctionExitEnabled,
+    setSelectedJunctionExitWeight,
   };
 });
 
