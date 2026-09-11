@@ -15,6 +15,11 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ stop: []; replay: []; close: [] }>();
 const presentation = computed(() => ROUTE_SIMULATION_PRESENTATION[props.result.status]);
+const playbackTitle = computed(() => {
+  if (props.playbackStatus === 'playing') return '播放中';
+  if (props.playbackStatus === 'stopped') return '已停止';
+  return presentation.value.title;
+});
 const progress = computed(() =>
   Math.min(props.result.path.length, props.frame.segmentIndex + (props.frame.completed ? 2 : 1)),
 );
@@ -27,11 +32,11 @@ const progress = computed(() =>
     <p v-if="playbackStatus === 'playing'" class="route-preview-progress">
       进度：{{ progress }} / {{ result.path.length }}
     </p>
-    <p class="route-preview-status">
-      状态：{{ playbackStatus === 'playing' ? '播放中' : presentation.title }}
-    </p>
+    <p class="route-preview-status">状态：{{ playbackTitle }}</p>
     <p v-if="playbackStatus !== 'playing'" class="route-preview-description">
-      {{ presentation.description }}
+      {{
+        playbackStatus === 'stopped' ? `模拟结果：${presentation.title}` : presentation.description
+      }}
     </p>
     <p v-if="result.endId !== undefined" class="route-preview-end">
       {{ result.spawnId }} → {{ result.endId }}

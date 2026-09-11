@@ -8,13 +8,14 @@ import MapCanvas from '@/ui/components/MapCanvas.vue';
 import NewLevelDialog from '@/ui/components/NewLevelDialog.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
 import RoutePreviewOverlay from '@/ui/components/RoutePreviewOverlay.vue';
+import ResizeLevelDialog from '@/ui/components/ResizeLevelDialog.vue';
 import ToolPalette from '@/ui/components/ToolPalette.vue';
 import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
 import { useRoutePreviewPlayback } from '@/ui/routePreview/useRoutePreviewPlayback';
 import { getNextAvailableStage } from '@/editor';
-import type { NewLevelSpec } from '@/editor';
+import type { GridResizeTarget, NewLevelSpec } from '@/editor';
 import { downloadJsonFile, EditorImportError, parseEditorImportText } from '@/io';
 import type { EditorImportPayload } from '@/io';
 
@@ -40,6 +41,7 @@ const {
 const isNewLevelDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
 const isExportDialogOpen = ref(false);
+const isResizeDialogOpen = ref(false);
 const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
 const importError = ref<string | null>(null);
@@ -70,6 +72,9 @@ const newLevelDefaults = computed<NewLevelSpec>(() => ({
 function createLevel(spec: NewLevelSpec): void {
   editorStore.createLevel(spec);
   isNewLevelDialogOpen.value = false;
+}
+function resizeCurrentLevel(target: GridResizeTarget): void {
+  if (editorStore.resizeCurrentLevel(target)) isResizeDialogOpen.value = false;
 }
 function openImportPicker(): void {
   if (importInput.value === null) return;
@@ -176,6 +181,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           @select-level="editorStore.openLevel"
           @create-level="isNewLevelDialogOpen = true"
           @duplicate-current="editorStore.duplicateCurrentLevel"
+          @resize-current="isResizeDialogOpen = true"
           @delete-current="editorStore.deleteCurrentLevel"
         />
       </aside>
@@ -229,6 +235,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :defaults="newLevelDefaults"
       @create="createLevel"
       @cancel="isNewLevelDialogOpen = false"
+    />
+    <ResizeLevelDialog
+      :open="isResizeDialogOpen"
+      :level="workingLevel"
+      @resize="resizeCurrentLevel"
+      @cancel="isResizeDialogOpen = false"
     />
     <input
       ref="importInput"

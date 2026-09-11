@@ -14,6 +14,8 @@ export {
   setTowerLocked,
 } from './LevelEditor';
 export { rasterizeOrthogonalSegment } from './OrthogonalStroke';
+export { analyzeLevelResize, isValidGridResizeTarget, resizeLevelGrid } from './resize';
+export type { GridResizeTarget, LevelResizeImpact } from './resize';
 export {
   createJunctionConfig,
   getJunctionEditorState,

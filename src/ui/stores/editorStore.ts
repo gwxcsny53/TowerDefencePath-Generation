@@ -17,6 +17,7 @@ import {
   placeSpawn,
   placeTower,
   rasterizeOrthogonalSegment,
+  resizeLevelGrid,
   replaceProjectLevel,
   removeJunctionConfig,
   setJunctionEntryEnabled,
@@ -26,7 +27,7 @@ import {
   setTowerLocked,
   sortProjectLevels,
 } from '@/editor';
-import type { LevelAddress, NewLevelSpec } from '@/editor';
+import type { GridResizeTarget, LevelAddress, NewLevelSpec } from '@/editor';
 import type { Direction, GridPosition, LevelConfig } from '@/core/model';
 import { RouteSimulator } from '@/core/simulation';
 import type { RouteSimulationResult } from '@/core/simulation';
@@ -398,6 +399,18 @@ export const useEditorStore = defineStore('editor', () => {
     project.value = nextProject;
     openLevel(nextLevel.level);
   }
+  function resizeCurrentLevel(target: GridResizeTarget): boolean {
+    finishStrokeTransaction();
+    const resizedLevel = resizeLevelGrid(workingLevel.value, target);
+    if (resizedLevel === workingLevel.value) return false;
+    const previousSelection = selection.value;
+    executeEdit(
+      '调整地图尺寸',
+      () => resizedLevel,
+      (level) => (previousSelection === null ? null : selectAt(level, previousSelection.position)),
+    );
+    return true;
+  }
   function addImportedLevel(level: LevelConfig): boolean {
     finishStrokeTransaction();
     const nextProject = addProjectLevel(project.value, level);
@@ -578,6 +591,7 @@ export const useEditorStore = defineStore('editor', () => {
     createLevel,
     duplicateCurrentLevel,
     deleteCurrentLevel,
+    resizeCurrentLevel,
     addImportedLevel,
     replaceImportedLevel,
     addImportedLevelAsCopy,

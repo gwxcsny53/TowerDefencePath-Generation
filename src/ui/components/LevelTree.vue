@@ -12,6 +12,7 @@ const emit = defineEmits<{
   'select-level': [address: LevelAddress];
   'create-level': [];
   'duplicate-current': [];
+  'resize-current': [];
   'delete-current': [];
 }>();
 const chapters = computed(() => getProjectChapters(props.project));
@@ -45,6 +46,7 @@ function requestDelete(): void {
       <div class="level-tree-actions" aria-label="关卡操作">
         <button type="button" @click="emit('create-level')">新建</button>
         <button type="button" @click="emit('duplicate-current')">复制</button>
+        <button type="button" @click="emit('resize-current')">尺寸</button>
         <button
           type="button"
           :disabled="!canDelete"
@@ -85,6 +87,7 @@ function requestDelete(): void {
 <style scoped>
 .level-tree-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
 }
 
