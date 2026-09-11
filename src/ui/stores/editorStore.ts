@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import {
   addPathCells,
@@ -18,6 +18,8 @@ import {
   setTowerLocked,
 } from '@/editor';
 import type { Direction, GridPosition, LevelConfig } from '@/core/model';
+import { RouteSimulator } from '@/core/simulation';
+import type { RouteSimulationResult } from '@/core/simulation';
 import { MapValidator } from '@/core/validation';
 import type { ValidationIssue } from '@/core/validation';
 import {
@@ -46,12 +48,18 @@ export interface ValidationRun {
   readonly issues: readonly ValidationIssue[];
 }
 
+export interface RoutePreviewRun {
+  readonly level: LevelConfig;
+  readonly result: RouteSimulationResult;
+}
+
 export const useEditorStore = defineStore('editor', () => {
   const workingLevel = ref(createEmptyLevelConfig());
   const activeTool = ref<EditorTool>('select');
   const selection = ref<EditorSelection | null>(null);
   const history = ref(createEditorHistory());
   const validationRun = ref<ValidationRun | null>(null);
+  const routePreviewRun = ref<RoutePreviewRun | null>(null);
   const focusedValidationIssue = ref<ValidationIssue | null>(null);
   const lastStrokeCell = ref<GridPosition | null>(null);
   const canUndo = computed(() => canUndoEditorHistory(history.value));
@@ -79,7 +87,37 @@ export const useEditorStore = defineStore('editor', () => {
   const focusedValidationPosition = computed(() =>
     isValidationCurrent.value ? (focusedValidationIssue.value?.position ?? null) : null,
   );
+  const isRoutePreviewCurrent = computed(
+    () => routePreviewRun.value !== null && routePreviewRun.value.level === workingLevel.value,
+  );
+  const resolvedPreviewSpawn = computed(() => {
+    const spawnPoints = workingLevel.value.spawnPoints;
+    if (spawnPoints.length === 1) return spawnPoints[0] ?? null;
+    if (spawnPoints.length === 0 || selection.value?.kind !== 'spawn') return null;
+    const selectedSpawnId = selection.value.id;
+    return spawnPoints.find((spawnPoint) => spawnPoint.id === selectedSpawnId) ?? null;
+  });
+  const canTestRoute = computed(
+    () => validationStatus.value === 'passed' && resolvedPreviewSpawn.value !== null,
+  );
+  const routePreviewDisabledReason = computed(() => {
+    if (validationStatus.value === 'not-run') return '尚未校验地图';
+    if (validationStatus.value === 'failed') return '地图存在校验错误';
+    if (validationStatus.value === 'stale') return '校验结果已过期';
+    if (workingLevel.value.spawnPoints.length === 0) return '当前地图没有出生点';
+    if (resolvedPreviewSpawn.value === null) return '存在多个出生点，请先选择一个出生点';
+    return '测试路线';
+  });
   let pendingStroke: PendingEditTransaction | null = null;
+
+  watch(
+    workingLevel,
+    (level) => {
+      if (routePreviewRun.value !== null && routePreviewRun.value.level !== level)
+        routePreviewRun.value = null;
+    },
+    { flush: 'sync' },
+  );
 
   function captureSnapshot(): EditorSnapshot {
     return createEditorSnapshot(workingLevel.value, selection.value);
@@ -179,6 +217,19 @@ export const useEditorStore = defineStore('editor', () => {
     if (issue.position !== undefined)
       selection.value = selectAt(workingLevel.value, issue.position);
   }
+  function startRoutePreview(): void {
+    finishStrokeTransaction();
+    const spawn = resolvedPreviewSpawn.value;
+    if (!canTestRoute.value || spawn === null) return;
+    const level = workingLevel.value;
+    routePreviewRun.value = {
+      level,
+      result: RouteSimulator.simulate(level, spawn.id),
+    };
+  }
+  function closeRoutePreview(): void {
+    routePreviewRun.value = null;
+  }
   function applyToolAt(position: GridPosition): void {
     if (activeTool.value === 'select') {
       selection.value = selectAt(workingLevel.value, position);
@@ -277,6 +328,11 @@ export const useEditorStore = defineStore('editor', () => {
     validationWarningCount,
     focusedValidationIssue,
     focusedValidationPosition,
+    routePreviewRun,
+    isRoutePreviewCurrent,
+    resolvedPreviewSpawn,
+    canTestRoute,
+    routePreviewDisabledReason,
     setActiveTool,
     beginStroke,
     continueStroke,
@@ -286,6 +342,8 @@ export const useEditorStore = defineStore('editor', () => {
     clearHistory,
     runValidation,
     focusValidationIssue,
+    startRoutePreview,
+    closeRoutePreview,
     setSelectedTowerLocked,
     createSelectedJunctionConfig,
     removeSelectedJunctionConfig,

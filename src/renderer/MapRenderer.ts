@@ -14,11 +14,14 @@ import type { RenderTheme } from './RenderTheme';
 import type { RenderViewport } from './RenderViewport';
 import { renderSelection } from './SelectionRenderer';
 import { renderValidation } from './ValidationRenderer';
+import { renderRoutePreview } from './RoutePreviewRenderer';
+import type { RoutePreviewRenderState } from './RoutePreviewRenderer';
 
 export interface MapRenderOptions {
   readonly selectedPosition?: Readonly<GridPosition> | null;
   readonly validationIssues?: readonly ValidationIssue[];
   readonly focusedValidationPosition?: Readonly<GridPosition> | null;
+  readonly routePreview?: RoutePreviewRenderState | null;
 }
 
 /** Builds topology for rendering without letting out-of-bounds paths affect visible candidates. */
@@ -67,5 +70,6 @@ export class MapRenderer {
       viewport,
       this.theme,
     );
+    renderRoutePreview(context, options.routePreview, viewport, this.theme);
   }
 }

@@ -14,10 +14,15 @@ export interface RenderTheme {
   validationWarningFill: string;
   validationWarningStroke: string;
   validationFocusStroke: string;
+  routePreviewStroke: string;
+  routePreviewMarkerFill: string;
+  routePreviewMarkerStroke: string;
   gridLineWidth: number;
   pathInset: number;
   markerScale: number;
   validationLineWidth: number;
+  routePreviewLineWidth: number;
+  routePreviewMarkerScale: number;
 }
 
 export const DEFAULT_RENDER_THEME: Readonly<RenderTheme> = {
@@ -36,8 +41,13 @@ export const DEFAULT_RENDER_THEME: Readonly<RenderTheme> = {
   validationWarningFill: 'rgba(245, 158, 11, 0.14)',
   validationWarningStroke: '#d97706',
   validationFocusStroke: '#7f1d1d',
+  routePreviewStroke: 'rgba(8, 145, 178, 0.55)',
+  routePreviewMarkerFill: '#06b6d4',
+  routePreviewMarkerStroke: '#155e75',
   gridLineWidth: 1,
   pathInset: 1,
   markerScale: 0.3,
   validationLineWidth: 2,
+  routePreviewLineWidth: 3,
+  routePreviewMarkerScale: 0.2,
 };

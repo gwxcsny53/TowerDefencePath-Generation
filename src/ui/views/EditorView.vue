@@ -4,10 +4,12 @@ import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
 import MapCanvas from '@/ui/components/MapCanvas.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
+import RoutePreviewOverlay from '@/ui/components/RoutePreviewOverlay.vue';
 import ToolPalette from '@/ui/components/ToolPalette.vue';
 import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
+import { useRoutePreviewPlayback } from '@/ui/routePreview/useRoutePreviewPlayback';
 
 const editorStore = useEditorStore();
 const {
@@ -20,8 +22,28 @@ const {
   currentValidationIssues,
   focusedValidationIssue,
   focusedValidationPosition,
+  routePreviewRun,
+  canTestRoute,
+  routePreviewDisabledReason,
 } = storeToRefs(editorStore);
 const selectedPosition = computed(() => selection.value?.position ?? null);
+const routePreviewResult = computed(() => routePreviewRun.value?.result ?? null);
+const {
+  frame: routePreviewFrame,
+  playbackStatus,
+  stop: stopRoutePreview,
+} = useRoutePreviewPlayback(routePreviewResult);
+const routePreviewRenderState = computed(() => {
+  if (routePreviewRun.value === null || routePreviewFrame.value === null) return null;
+  return {
+    path: routePreviewRun.value.result.path,
+    ...routePreviewFrame.value,
+  };
+});
+function closeRoutePreview(): void {
+  stopRoutePreview();
+  editorStore.closeRoutePreview();
+}
 
 function isEditableTarget(target: EventTarget | null): boolean {
   return (
@@ -52,9 +74,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
     <TopToolbar
       :can-undo="canUndo"
       :can-redo="canRedo"
+      :can-test-route="canTestRoute"
+      :test-route-title="routePreviewDisabledReason"
       @undo="editorStore.undo"
       @redo="editorStore.redo"
       @validate="editorStore.runValidation"
+      @test-route="editorStore.startRoutePreview"
     />
 
     <main class="editor-workspace">
@@ -68,9 +93,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           :selected-position="selectedPosition"
           :validation-issues="currentValidationIssues"
           :validation-focus-position="focusedValidationPosition"
+          :route-preview="routePreviewRenderState"
           @cell-pointer-down="editorStore.beginStroke"
           @cell-pointer-move="editorStore.continueStroke"
           @cell-pointer-up="editorStore.endStroke"
+        />
+        <RoutePreviewOverlay
+          v-if="routePreviewRun !== null && routePreviewFrame !== null"
+          :result="routePreviewRun.result"
+          :frame="routePreviewFrame"
+          :playback-status="playbackStatus"
+          @stop="stopRoutePreview"
+          @replay="editorStore.startRoutePreview"
+          @close="closeRoutePreview"
         />
       </section>
 
@@ -129,6 +164,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
 }
 
 .editor-map-area {
+  position: relative;
   min-width: 0;
   min-height: 0;
   overflow: hidden;

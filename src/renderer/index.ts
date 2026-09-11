@@ -7,5 +7,7 @@ export type { CanvasPoint, CanvasSize, RenderViewport } from './RenderViewport';
 export { renderSelection } from './SelectionRenderer';
 export { getValidationRenderItems, renderValidation } from './ValidationRenderer';
 export type { ValidationRenderItem } from './ValidationRenderer';
+export { getRoutePreviewGeometry, renderRoutePreview } from './RoutePreviewRenderer';
+export type { RoutePreviewGeometry, RoutePreviewRenderState } from './RoutePreviewRenderer';
 export { getJunctionRenderItems } from './JunctionRenderer';
 export type { JunctionRenderItem, JunctionRenderKind } from './JunctionRenderer';

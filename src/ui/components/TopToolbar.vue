@@ -1,6 +1,11 @@
 <script setup lang="ts">
-defineProps<{ canUndo: boolean; canRedo: boolean }>();
-const emit = defineEmits<{ undo: []; redo: []; validate: [] }>();
+defineProps<{
+  canUndo: boolean;
+  canRedo: boolean;
+  canTestRoute: boolean;
+  testRouteTitle: string;
+}>();
+const emit = defineEmits<{ undo: []; redo: []; validate: []; 'test-route': [] }>();
 </script>
 
 <template>
@@ -23,7 +28,14 @@ const emit = defineEmits<{ undo: []; redo: []; validate: [] }>();
         重做
       </button>
       <button type="button" @click="emit('validate')">校验</button>
-      <button type="button" disabled>测试路线</button>
+      <button
+        type="button"
+        :disabled="!canTestRoute"
+        :title="testRouteTitle"
+        @click="emit('test-route')"
+      >
+        测试路线
+      </button>
     </nav>
   </header>
 </template>

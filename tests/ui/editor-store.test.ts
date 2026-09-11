@@ -230,4 +230,119 @@ describe('editor store selection reconciliation', () => {
     expect(store.canRedo).toBe(true);
     expect(store.validationStatus).toBe('passed');
   });
+
+  it('gates route preview on current validation and a resolved spawn', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+      endPoints: [{ id: 'end_01', x: 2, y: 0 }],
+    });
+
+    expect(store.canTestRoute).toBe(false);
+    expect(store.routePreviewDisabledReason).toBe('尚未校验地图');
+    store.workingLevel = createLevel({ pathCells: [{ x: 1, y: 1 }] });
+    store.runValidation();
+    expect(store.validationStatus).toBe('failed');
+    expect(store.canTestRoute).toBe(false);
+
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+      endPoints: [{ id: 'end_01', x: 2, y: 0 }],
+    });
+    expect(store.validationStatus).toBe('stale');
+    expect(store.canTestRoute).toBe(false);
+    store.runValidation();
+    expect(store.validationStatus).toBe('passed');
+    expect(store.canTestRoute).toBe(true);
+
+    store.setActiveTool('path');
+    store.beginStroke({ x: 3, y: 0 });
+    store.endStroke();
+    expect(store.validationStatus).toBe('stale');
+    expect(store.canTestRoute).toBe(false);
+  });
+
+  it('requires an explicit selected spawn when the map has multiple spawns', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 0, y: 2 },
+        { x: 1, y: 2 },
+        { x: 2, y: 2 },
+      ],
+      spawnPoints: [
+        { id: 'spawn_01', x: 0, y: 0 },
+        { id: 'spawn_02', x: 0, y: 2 },
+      ],
+      endPoints: [
+        { id: 'end_01', x: 2, y: 0 },
+        { id: 'end_02', x: 2, y: 2 },
+      ],
+    });
+    store.runValidation();
+
+    expect(store.canTestRoute).toBe(false);
+    expect(store.routePreviewDisabledReason).toBe('存在多个出生点，请先选择一个出生点');
+    store.setActiveTool('select');
+    store.beginStroke({ x: 0, y: 2 });
+    expect(store.canTestRoute).toBe(true);
+
+    store.startRoutePreview();
+    expect(store.routePreviewRun?.result.spawnId).toBe('spawn_02');
+    store.beginStroke({ x: 1, y: 2 });
+    expect(store.canTestRoute).toBe(false);
+  });
+
+  it('keeps editor state and redo intact while previewing, then invalidates on an edit', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.endStroke();
+    store.undo();
+    expect(store.canRedo).toBe(true);
+
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+      endPoints: [{ id: 'end_01', x: 2, y: 0 }],
+    });
+    store.selection = { kind: 'path', position: { x: 1, y: 0 } };
+    store.runValidation();
+    const before = store.workingLevel;
+    const tool = store.activeTool;
+
+    store.startRoutePreview();
+    expect(store.routePreviewRun?.level).toBe(before);
+    expect(store.workingLevel).toBe(before);
+    expect(store.activeTool).toBe(tool);
+    expect(store.canRedo).toBe(true);
+
+    store.setActiveTool('select');
+    store.beginStroke({ x: 1, y: 0 });
+    expect(store.routePreviewRun).not.toBeNull();
+
+    store.setActiveTool('path');
+    store.beginStroke({ x: 3, y: 0 });
+    store.endStroke();
+    expect(store.routePreviewRun).toBeNull();
+    store.closeRoutePreview();
+    expect(store.selection).toMatchObject({ kind: 'path' });
+  });
 });

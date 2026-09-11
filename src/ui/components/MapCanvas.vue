@@ -3,12 +3,14 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { createRenderViewport, MapRenderer } from '@/renderer';
 import type { GridPosition, LevelConfig } from '@/core/model';
 import type { ValidationIssue } from '@/core/validation';
+import type { RoutePreviewRenderState } from '@/renderer';
 
 const props = defineProps<{
   level?: LevelConfig | null;
   selectedPosition?: Readonly<GridPosition> | null;
   validationIssues?: readonly ValidationIssue[];
   validationFocusPosition?: Readonly<GridPosition> | null;
+  routePreview?: RoutePreviewRenderState | null;
 }>();
 const emit = defineEmits<{
   'cell-pointer-down': [position: GridPosition];
@@ -36,6 +38,7 @@ function renderMap(): void {
     selectedPosition: props.selectedPosition,
     validationIssues: props.validationIssues,
     focusedValidationPosition: props.validationFocusPosition,
+    routePreview: props.routePreview,
   });
 }
 function resizeCanvas(width: number, height: number): void {
@@ -91,6 +94,7 @@ watch(() => props.level, renderMap);
 watch(() => props.selectedPosition, renderMap);
 watch(() => props.validationIssues, renderMap);
 watch(() => props.validationFocusPosition, renderMap);
+watch(() => props.routePreview, renderMap, { deep: true });
 </script>
 
 <template>
