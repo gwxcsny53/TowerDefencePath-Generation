@@ -18,6 +18,8 @@ import {
   setTowerLocked,
 } from '@/editor';
 import type { Direction, GridPosition, LevelConfig } from '@/core/model';
+import { MapValidator } from '@/core/validation';
+import type { ValidationIssue } from '@/core/validation';
 import {
   canRedoEditorHistory,
   canUndoEditorHistory,
@@ -37,14 +39,46 @@ interface PendingEditTransaction {
   readonly before: EditorSnapshot;
 }
 
+export type ValidationStatus = 'not-run' | 'passed' | 'failed' | 'stale';
+
+export interface ValidationRun {
+  readonly level: LevelConfig;
+  readonly issues: readonly ValidationIssue[];
+}
+
 export const useEditorStore = defineStore('editor', () => {
   const workingLevel = ref(createEmptyLevelConfig());
   const activeTool = ref<EditorTool>('select');
   const selection = ref<EditorSelection | null>(null);
   const history = ref(createEditorHistory());
+  const validationRun = ref<ValidationRun | null>(null);
+  const focusedValidationIssue = ref<ValidationIssue | null>(null);
   const lastStrokeCell = ref<GridPosition | null>(null);
   const canUndo = computed(() => canUndoEditorHistory(history.value));
   const canRedo = computed(() => canRedoEditorHistory(history.value));
+  const isValidationCurrent = computed(
+    () => validationRun.value !== null && validationRun.value.level === workingLevel.value,
+  );
+  const validationStatus = computed<ValidationStatus>(() => {
+    if (validationRun.value === null) return 'not-run';
+    if (!isValidationCurrent.value) return 'stale';
+    return validationRun.value.issues.some((issue) => issue.severity === 'error')
+      ? 'failed'
+      : 'passed';
+  });
+  const validationIssues = computed(() => validationRun.value?.issues ?? []);
+  const currentValidationIssues = computed(() =>
+    isValidationCurrent.value ? (validationRun.value?.issues ?? []) : [],
+  );
+  const validationErrorCount = computed(
+    () => currentValidationIssues.value.filter((issue) => issue.severity === 'error').length,
+  );
+  const validationWarningCount = computed(
+    () => currentValidationIssues.value.filter((issue) => issue.severity === 'warning').length,
+  );
+  const focusedValidationPosition = computed(() =>
+    isValidationCurrent.value ? (focusedValidationIssue.value?.position ?? null) : null,
+  );
   let pendingStroke: PendingEditTransaction | null = null;
 
   function captureSnapshot(): EditorSnapshot {
@@ -132,6 +166,18 @@ export const useEditorStore = defineStore('editor', () => {
   }
   function clearHistory(): void {
     history.value = clearEditorHistory();
+  }
+  function runValidation(): void {
+    finishStrokeTransaction();
+    const level = workingLevel.value;
+    validationRun.value = { level, issues: MapValidator.validate(level) };
+    focusedValidationIssue.value = null;
+  }
+  function focusValidationIssue(issue: ValidationIssue): void {
+    if (!isValidationCurrent.value) return;
+    focusedValidationIssue.value = issue;
+    if (issue.position !== undefined)
+      selection.value = selectAt(workingLevel.value, issue.position);
   }
   function applyToolAt(position: GridPosition): void {
     if (activeTool.value === 'select') {
@@ -223,6 +269,14 @@ export const useEditorStore = defineStore('editor', () => {
     selection,
     canUndo,
     canRedo,
+    validationRun,
+    validationStatus,
+    validationIssues,
+    currentValidationIssues,
+    validationErrorCount,
+    validationWarningCount,
+    focusedValidationIssue,
+    focusedValidationPosition,
     setActiveTool,
     beginStroke,
     continueStroke,
@@ -230,6 +284,8 @@ export const useEditorStore = defineStore('editor', () => {
     undo,
     redo,
     clearHistory,
+    runValidation,
+    focusValidationIssue,
     setSelectedTowerLocked,
     createSelectedJunctionConfig,
     removeSelectedJunctionConfig,

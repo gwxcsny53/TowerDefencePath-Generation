@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{ canUndo: boolean; canRedo: boolean }>();
-const emit = defineEmits<{ undo: []; redo: [] }>();
+const emit = defineEmits<{ undo: []; redo: []; validate: [] }>();
 </script>
 
 <template>
@@ -22,7 +22,7 @@ const emit = defineEmits<{ undo: []; redo: [] }>();
       >
         重做
       </button>
-      <button type="button" disabled>校验</button>
+      <button type="button" @click="emit('validate')">校验</button>
       <button type="button" disabled>测试路线</button>
     </nav>
   </header>

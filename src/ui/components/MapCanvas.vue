@@ -2,10 +2,13 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { createRenderViewport, MapRenderer } from '@/renderer';
 import type { GridPosition, LevelConfig } from '@/core/model';
+import type { ValidationIssue } from '@/core/validation';
 
 const props = defineProps<{
   level?: LevelConfig | null;
   selectedPosition?: Readonly<GridPosition> | null;
+  validationIssues?: readonly ValidationIssue[];
+  validationFocusPosition?: Readonly<GridPosition> | null;
 }>();
 const emit = defineEmits<{
   'cell-pointer-down': [position: GridPosition];
@@ -29,7 +32,11 @@ function renderMap(): void {
     return;
   }
   viewport = createRenderViewport({ width: canvasWidth, height: canvasHeight }, props.level.grid);
-  renderer.render(context, props.level, viewport, { selectedPosition: props.selectedPosition });
+  renderer.render(context, props.level, viewport, {
+    selectedPosition: props.selectedPosition,
+    validationIssues: props.validationIssues,
+    focusedValidationPosition: props.validationFocusPosition,
+  });
 }
 function resizeCanvas(width: number, height: number): void {
   if (canvas.value === null || context === null) return;
@@ -82,6 +89,8 @@ onBeforeUnmount(() => {
 });
 watch(() => props.level, renderMap);
 watch(() => props.selectedPosition, renderMap);
+watch(() => props.validationIssues, renderMap);
+watch(() => props.validationFocusPosition, renderMap);
 </script>
 
 <template>

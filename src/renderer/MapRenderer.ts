@@ -3,6 +3,7 @@ import type { PathGraph } from '@/core/graph';
 import { GridMap } from '@/core/grid';
 import type { LevelConfig } from '@/core/model';
 import type { GridPosition } from '@/core/model';
+import type { ValidationIssue } from '@/core/validation';
 
 import { renderGrid } from './GridRenderer';
 import { renderJunctions } from './JunctionRenderer';
@@ -12,9 +13,12 @@ import { DEFAULT_RENDER_THEME } from './RenderTheme';
 import type { RenderTheme } from './RenderTheme';
 import type { RenderViewport } from './RenderViewport';
 import { renderSelection } from './SelectionRenderer';
+import { renderValidation } from './ValidationRenderer';
 
 export interface MapRenderOptions {
   readonly selectedPosition?: Readonly<GridPosition> | null;
+  readonly validationIssues?: readonly ValidationIssue[];
+  readonly focusedValidationPosition?: Readonly<GridPosition> | null;
 }
 
 /** Builds topology for rendering without letting out-of-bounds paths affect visible candidates. */
@@ -56,5 +60,12 @@ export class MapRenderer {
     );
     renderJunctions(context, graph, level.junctions, viewport, this.theme);
     renderSelection(context, options.selectedPosition, viewport);
+    renderValidation(
+      context,
+      options.validationIssues,
+      options.focusedValidationPosition,
+      viewport,
+      this.theme,
+    );
   }
 }

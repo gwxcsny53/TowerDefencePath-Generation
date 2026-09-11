@@ -169,4 +169,65 @@ describe('editor store selection reconciliation', () => {
     expect(store.canRedo).toBe(false);
     expect(store.activeTool).toBe('path');
   });
+
+  it('runs validation without affecting history and focuses positioned issues', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({ pathCells: [{ x: 1, y: 1 }] });
+    store.setActiveTool('tower');
+
+    store.runValidation();
+
+    expect(store.validationStatus).toBe('failed');
+    expect(store.currentValidationIssues.map((issue) => issue.code)).toContain('PATH_ISOLATED');
+    expect(store.canUndo).toBe(false);
+    expect(store.canRedo).toBe(false);
+    expect(store.activeTool).toBe('tower');
+
+    const isolatedIssue = store.currentValidationIssues.find(
+      (issue) => issue.code === 'PATH_ISOLATED',
+    );
+    expect(isolatedIssue).toBeDefined();
+    if (isolatedIssue === undefined) throw new Error('Expected isolated path issue.');
+    store.focusValidationIssue(isolatedIssue);
+    expect(store.focusedValidationIssue).toBe(isolatedIssue);
+    expect(store.selection).toMatchObject({ kind: 'path', position: { x: 1, y: 1 } });
+  });
+
+  it('makes validation stale after an edit and restores the prior result through undo', () => {
+    const store = useEditorStore();
+    const validatedLevel = createLevel({ pathCells: [{ x: 1, y: 1 }] });
+    store.workingLevel = validatedLevel;
+    store.runValidation();
+    const isolatedIssue = store.currentValidationIssues[0];
+    if (isolatedIssue === undefined) throw new Error('Expected validation issue.');
+    store.focusValidationIssue(isolatedIssue);
+
+    store.setActiveTool('path');
+    store.beginStroke({ x: 2, y: 1 });
+    store.endStroke();
+
+    expect(store.validationStatus).toBe('stale');
+    expect(store.currentValidationIssues).toEqual([]);
+    expect(store.focusedValidationPosition).toBeNull();
+    store.undo();
+    expect(store.validationStatus).toBe('failed');
+    expect(store.currentValidationIssues).toHaveLength(1);
+
+    store.runValidation();
+    expect(store.focusedValidationIssue).toBeNull();
+  });
+
+  it('does not clear redo when validation runs', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.endStroke();
+    store.undo();
+    expect(store.canRedo).toBe(true);
+
+    store.runValidation();
+
+    expect(store.canRedo).toBe(true);
+    expect(store.validationStatus).toBe('passed');
+  });
 });

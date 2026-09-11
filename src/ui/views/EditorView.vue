@@ -10,7 +10,17 @@ import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
 
 const editorStore = useEditorStore();
-const { workingLevel, activeTool, selection, canUndo, canRedo } = storeToRefs(editorStore);
+const {
+  workingLevel,
+  activeTool,
+  selection,
+  canUndo,
+  canRedo,
+  validationStatus,
+  currentValidationIssues,
+  focusedValidationIssue,
+  focusedValidationPosition,
+} = storeToRefs(editorStore);
 const selectedPosition = computed(() => selection.value?.position ?? null);
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -44,6 +54,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :can-redo="canRedo"
       @undo="editorStore.undo"
       @redo="editorStore.redo"
+      @validate="editorStore.runValidation"
     />
 
     <main class="editor-workspace">
@@ -55,6 +66,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         <MapCanvas
           :level="workingLevel"
           :selected-position="selectedPosition"
+          :validation-issues="currentValidationIssues"
+          :validation-focus-position="focusedValidationPosition"
           @cell-pointer-down="editorStore.beginStroke"
           @cell-pointer-move="editorStore.continueStroke"
           @cell-pointer-up="editorStore.endStroke"
@@ -76,7 +89,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
     </main>
 
     <ToolPalette :active-tool="activeTool" @select-tool="editorStore.setActiveTool" />
-    <ValidationPanel />
+    <ValidationPanel
+      :status="validationStatus"
+      :issues="currentValidationIssues"
+      :focused-issue="focusedValidationIssue"
+      @focus-issue="editorStore.focusValidationIssue"
+    />
   </section>
 </template>
 
