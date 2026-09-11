@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
 import MapCanvas from '@/ui/components/MapCanvas.vue';
+import NewLevelDialog from '@/ui/components/NewLevelDialog.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
 import RoutePreviewOverlay from '@/ui/components/RoutePreviewOverlay.vue';
 import ToolPalette from '@/ui/components/ToolPalette.vue';
@@ -10,6 +11,8 @@ import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
 import { useRoutePreviewPlayback } from '@/ui/routePreview/useRoutePreviewPlayback';
+import { getNextAvailableStage } from '@/editor';
+import type { NewLevelSpec } from '@/editor';
 
 const editorStore = useEditorStore();
 const {
@@ -25,7 +28,10 @@ const {
   routePreviewRun,
   canTestRoute,
   routePreviewDisabledReason,
+  project,
+  activeLevelAddress,
 } = storeToRefs(editorStore);
+const isNewLevelDialogOpen = ref(false);
 const selectedPosition = computed(() => selection.value?.position ?? null);
 const routePreviewResult = computed(() => routePreviewRun.value?.result ?? null);
 const {
@@ -43,6 +49,16 @@ const routePreviewRenderState = computed(() => {
 function closeRoutePreview(): void {
   stopRoutePreview();
   editorStore.closeRoutePreview();
+}
+const newLevelDefaults = computed<NewLevelSpec>(() => ({
+  chapter: activeLevelAddress.value.chapter,
+  stage: getNextAvailableStage(project.value, activeLevelAddress.value.chapter),
+  cols: workingLevel.value.grid.cols,
+  rows: workingLevel.value.grid.rows,
+}));
+function createLevel(spec: NewLevelSpec): void {
+  editorStore.createLevel(spec);
+  isNewLevelDialogOpen.value = false;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -84,7 +100,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
 
     <main class="editor-workspace">
       <aside class="editor-level-area" aria-label="关卡列表">
-        <LevelTree :level="workingLevel" />
+        <LevelTree
+          :project="project"
+          :active-level-address="activeLevelAddress"
+          @select-level="editorStore.openLevel"
+          @create-level="isNewLevelDialogOpen = true"
+          @duplicate-current="editorStore.duplicateCurrentLevel"
+          @delete-current="editorStore.deleteCurrentLevel"
+        />
       </aside>
 
       <section class="editor-map-area" aria-label="地图编辑区域">
@@ -129,6 +152,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :issues="currentValidationIssues"
       :focused-issue="focusedValidationIssue"
       @focus-issue="editorStore.focusValidationIssue"
+    />
+    <NewLevelDialog
+      :open="isNewLevelDialogOpen"
+      :project="project"
+      :defaults="newLevelDefaults"
+      @create="createLevel"
+      @cancel="isNewLevelDialogOpen = false"
     />
   </section>
 </template>

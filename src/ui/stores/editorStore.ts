@@ -1,22 +1,30 @@
 import { defineStore } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 
 import {
   addPathCells,
-  createEmptyLevelConfig,
+  createEditorProject,
+  createProjectLevel,
   createJunctionConfig,
+  deleteProjectLevel,
+  duplicateProjectLevel,
   eraseCell,
+  findProjectLevel,
+  getNextAvailableStage,
   placeEnd,
   placeSpawn,
   placeTower,
   rasterizeOrthogonalSegment,
+  replaceProjectLevel,
   removeJunctionConfig,
   setJunctionEntryEnabled,
   setJunctionExitEnabled,
   setJunctionExitWeight,
   selectAt,
   setTowerLocked,
+  sortProjectLevels,
 } from '@/editor';
+import type { LevelAddress, NewLevelSpec } from '@/editor';
 import type { Direction, GridPosition, LevelConfig } from '@/core/model';
 import { RouteSimulator } from '@/core/simulation';
 import type { RouteSimulationResult } from '@/core/simulation';
@@ -54,7 +62,11 @@ export interface RoutePreviewRun {
 }
 
 export const useEditorStore = defineStore('editor', () => {
-  const workingLevel = ref(createEmptyLevelConfig());
+  const project = ref(createEditorProject());
+  const activeLevelAddress = ref<LevelAddress>({ chapter: 1, stage: 1 });
+  const initialLevel = findProjectLevel(project.value, activeLevelAddress.value);
+  if (initialLevel === null) throw new Error('Default editor project must contain level 1-1.');
+  const workingLevel = ref(initialLevel);
   const activeTool = ref<EditorTool>('select');
   const selection = ref<EditorSelection | null>(null);
   const history = ref(createEditorHistory());
@@ -110,20 +122,26 @@ export const useEditorStore = defineStore('editor', () => {
   });
   let pendingStroke: PendingEditTransaction | null = null;
 
-  watch(
-    workingLevel,
-    (level) => {
-      if (routePreviewRun.value !== null && routePreviewRun.value.level !== level)
-        routePreviewRun.value = null;
-    },
-    { flush: 'sync' },
-  );
+  function setWorkingLevel(level: LevelConfig): void {
+    project.value = replaceProjectLevel(project.value, activeLevelAddress.value, level);
+    workingLevel.value = level;
+    if (routePreviewRun.value !== null && routePreviewRun.value.level !== level)
+      routePreviewRun.value = null;
+  }
+  function resetLevelSession(): void {
+    history.value = clearEditorHistory();
+    selection.value = null;
+    validationRun.value = null;
+    focusedValidationIssue.value = null;
+    routePreviewRun.value = null;
+    lastStrokeCell.value = null;
+  }
 
   function captureSnapshot(): EditorSnapshot {
     return createEditorSnapshot(workingLevel.value, selection.value);
   }
   function restoreSnapshot(snapshot: EditorSnapshot): void {
-    workingLevel.value = snapshot.level;
+    setWorkingLevel(snapshot.level);
     selection.value = cloneEditorSelection(snapshot.selection);
     lastStrokeCell.value = null;
   }
@@ -135,7 +153,7 @@ export const useEditorStore = defineStore('editor', () => {
     const before = captureSnapshot();
     const updated = update(before.level);
     if (updated === before.level) return;
-    workingLevel.value = updated;
+    setWorkingLevel(updated);
     if (nextSelection !== undefined) selection.value = nextSelection(updated);
     history.value = recordEditorCommand(history.value, {
       label,
@@ -175,10 +193,12 @@ export const useEditorStore = defineStore('editor', () => {
     if (lastStrokeCell.value === null) return;
     const positions = rasterizeOrthogonalSegment(lastStrokeCell.value, position);
     if (activeTool.value === 'path') {
-      workingLevel.value = addPathCells(workingLevel.value, positions);
+      setWorkingLevel(addPathCells(workingLevel.value, positions));
     }
     if (activeTool.value === 'eraser') {
-      for (const cell of positions) workingLevel.value = eraseCell(workingLevel.value, cell);
+      let updated = workingLevel.value;
+      for (const cell of positions) updated = eraseCell(updated, cell);
+      setWorkingLevel(updated);
       if (
         selection.value !== null &&
         positions.some((cell) => samePosition(cell, selection.value!.position))
@@ -230,17 +250,56 @@ export const useEditorStore = defineStore('editor', () => {
   function closeRoutePreview(): void {
     routePreviewRun.value = null;
   }
+  function openLevel(address: LevelAddress): void {
+    finishStrokeTransaction();
+    const level = findProjectLevel(project.value, address);
+    if (level === null) return;
+    activeLevelAddress.value = { ...address };
+    workingLevel.value = level;
+    resetLevelSession();
+  }
+  function createLevel(spec: NewLevelSpec): void {
+    finishStrokeTransaction();
+    const nextProject = createProjectLevel(project.value, spec);
+    if (nextProject === project.value) return;
+    project.value = nextProject;
+    openLevel({ chapter: spec.chapter, stage: spec.stage });
+  }
+  function duplicateCurrentLevel(): void {
+    finishStrokeTransaction();
+    const chapter = activeLevelAddress.value.chapter;
+    const stage = getNextAvailableStage(project.value, chapter);
+    const nextProject = duplicateProjectLevel(project.value, activeLevelAddress.value);
+    if (nextProject === project.value) return;
+    project.value = nextProject;
+    openLevel({ chapter, stage });
+  }
+  function deleteCurrentLevel(): void {
+    finishStrokeTransaction();
+    const sortedLevels = sortProjectLevels(project.value);
+    const currentIndex = sortedLevels.findIndex(
+      (level) =>
+        level.level.chapter === activeLevelAddress.value.chapter &&
+        level.level.stage === activeLevelAddress.value.stage,
+    );
+    const nextProject = deleteProjectLevel(project.value, activeLevelAddress.value);
+    if (nextProject === project.value || currentIndex < 0) return;
+    const nextLevel = sortedLevels[currentIndex + 1] ?? sortedLevels[currentIndex - 1];
+    if (nextLevel === undefined) return;
+    project.value = nextProject;
+    openLevel(nextLevel.level);
+  }
   function applyToolAt(position: GridPosition): void {
     if (activeTool.value === 'select') {
       selection.value = selectAt(workingLevel.value, position);
       return;
     }
     if (activeTool.value === 'path') {
-      workingLevel.value = addPathCells(workingLevel.value, [position]);
+      setWorkingLevel(addPathCells(workingLevel.value, [position]));
       return;
     }
     if (activeTool.value === 'eraser') {
-      workingLevel.value = eraseCell(workingLevel.value, position);
+      setWorkingLevel(eraseCell(workingLevel.value, position));
       if (selection.value !== null && samePosition(selection.value.position, position))
         reconcileSelectionAtCurrentPosition();
       return;
@@ -315,6 +374,8 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   return {
+    project,
+    activeLevelAddress,
     workingLevel,
     activeTool,
     selection,
@@ -344,6 +405,10 @@ export const useEditorStore = defineStore('editor', () => {
     focusValidationIssue,
     startRoutePreview,
     closeRoutePreview,
+    openLevel,
+    createLevel,
+    duplicateCurrentLevel,
+    deleteCurrentLevel,
     setSelectedTowerLocked,
     createSelectedJunctionConfig,
     removeSelectedJunctionConfig,

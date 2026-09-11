@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-import { createJunctionConfig } from '@/editor';
+import { createJunctionConfig, findProjectLevel } from '@/editor';
 import { useEditorStore } from '@/ui/stores/editorStore';
 import { createLevel } from '../core/validation/fixtures';
 
@@ -344,5 +344,100 @@ describe('editor store selection reconciliation', () => {
     expect(store.routePreviewRun).toBeNull();
     store.closeRoutePreview();
     expect(store.selection).toMatchObject({ kind: 'path' });
+  });
+
+  it('starts with project_01 level 1-1 and synchronizes edits through undo and redo', () => {
+    const store = useEditorStore();
+
+    expect(store.project).toMatchObject({ id: 'project_01', name: '未命名项目' });
+    expect(store.activeLevelAddress).toEqual({ chapter: 1, stage: 1 });
+    expect(findProjectLevel(store.project, store.activeLevelAddress)).toBe(store.workingLevel);
+
+    store.setActiveTool('path');
+    store.beginStroke({ x: 1, y: 1 });
+    store.endStroke();
+    expect(findProjectLevel(store.project, { chapter: 1, stage: 1 })).toBe(store.workingLevel);
+    expect(store.workingLevel.pathCells).toEqual([{ x: 1, y: 1 }]);
+
+    store.undo();
+    expect(findProjectLevel(store.project, { chapter: 1, stage: 1 })).toBe(store.workingLevel);
+    expect(store.workingLevel.pathCells).toEqual([]);
+    store.redo();
+    expect(findProjectLevel(store.project, { chapter: 1, stage: 1 })).toBe(store.workingLevel);
+    expect(store.workingLevel.pathCells).toEqual([{ x: 1, y: 1 }]);
+  });
+
+  it('creates isolated levels, clears the session on switch, and retains the active tool', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.continueStroke({ x: 2, y: 0 });
+    store.endStroke();
+    store.setActiveTool('spawn');
+    store.beginStroke({ x: 0, y: 0 });
+    store.setActiveTool('end');
+    store.beginStroke({ x: 2, y: 0 });
+    store.runValidation();
+    store.startRoutePreview();
+    store.selection = { kind: 'path', position: { x: 1, y: 0 } };
+    store.setActiveTool('path');
+    expect(store.routePreviewRun).not.toBeNull();
+
+    store.createLevel({ chapter: 1, stage: 2, rows: 6, cols: 7 });
+    expect(store.activeLevelAddress).toEqual({ chapter: 1, stage: 2 });
+    expect(store.workingLevel.grid).toEqual({ rows: 6, cols: 7 });
+    expect(store.selection).toBeNull();
+    expect(store.validationStatus).toBe('not-run');
+    expect(store.routePreviewRun).toBeNull();
+    expect(store.canUndo).toBe(false);
+    expect(store.activeTool).toBe('path');
+
+    store.beginStroke({ x: 2, y: 2 });
+    store.endStroke();
+    store.openLevel({ chapter: 1, stage: 1 });
+    expect(store.workingLevel.pathCells).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(store.canUndo).toBe(false);
+    store.openLevel({ chapter: 1, stage: 2 });
+    expect(store.workingLevel.pathCells).toEqual([{ x: 2, y: 2 }]);
+  });
+
+  it('finishes a pending stroke before structural operations and duplicates independently', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+
+    store.duplicateCurrentLevel();
+    expect(store.activeLevelAddress).toEqual({ chapter: 1, stage: 2 });
+    expect(findProjectLevel(store.project, { chapter: 1, stage: 1 })?.pathCells).toEqual([
+      { x: 0, y: 0 },
+    ]);
+    store.beginStroke({ x: 1, y: 0 });
+    store.endStroke();
+    store.openLevel({ chapter: 1, stage: 1 });
+    expect(store.workingLevel.pathCells).toEqual([{ x: 0, y: 0 }]);
+    store.openLevel({ chapter: 1, stage: 2 });
+    expect(store.workingLevel.pathCells).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ]);
+  });
+
+  it('deletes the current level by selecting the next, then previous, sorted level', () => {
+    const store = useEditorStore();
+    store.createLevel({ chapter: 1, stage: 2, rows: 5, cols: 5 });
+    store.createLevel({ chapter: 2, stage: 1, rows: 5, cols: 5 });
+
+    store.openLevel({ chapter: 1, stage: 2 });
+    store.deleteCurrentLevel();
+    expect(store.activeLevelAddress).toEqual({ chapter: 2, stage: 1 });
+    store.deleteCurrentLevel();
+    expect(store.activeLevelAddress).toEqual({ chapter: 1, stage: 1 });
+    store.deleteCurrentLevel();
+    expect(store.project.levels).toHaveLength(1);
+    expect(store.activeLevelAddress).toEqual({ chapter: 1, stage: 1 });
   });
 });

@@ -40,6 +40,20 @@ export {
   redoEditorHistory,
   undoEditorHistory,
 } from './history';
+export {
+  cloneLevelConfig,
+  createEditorProject,
+  createProjectLevel,
+  deleteProjectLevel,
+  duplicateProjectLevel,
+  findProjectLevel,
+  getNextAvailableStage,
+  getProjectChapters,
+  isValidNewLevelSpec,
+  replaceProjectLevel,
+  sortProjectLevels,
+} from './project';
+export type { EditorProject, LevelAddress, NewLevelSpec, ProjectChapter } from './project';
 export type {
   EditorCommand,
   EditorHistoryOperation,
