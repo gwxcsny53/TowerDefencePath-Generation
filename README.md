@@ -42,3 +42,8 @@ npm run dev
 npm run check
 npm run build
 ```
+
+## Server 部署
+
+cd /opt/tower-editor
+./deploy.sh
