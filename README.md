@@ -17,7 +17,7 @@
 - Undo / Redo、地图校验与路线预览
 - 项目内多关卡的新建、复制、删除与切换
 - IndexedDB 本地自动保存
-- Runtime Level JSON 与 Project Backup JSON 的导入导出
+- 游戏关卡配置 stage.json 导出与 Project Backup JSON 的导入导出
 - 左上锚定的 Grid Resize，并在裁切数据前展示影响
 
 ## 坐标与尺寸
@@ -30,7 +30,7 @@
 
 ## 文件格式与本地数据
 
-- Runtime Level 导出是纯 `LevelConfig` JSON，可直接供游戏运行时读取。
+- 游戏关卡配置导出为 `stage.json`，根对象是按 chapter、stage 排序的 `LevelConfig[]`，可直接供游戏运行时读取。
 - Project Backup 使用 `*.tdpe-project.json`，包含项目及当前活动关卡地址，仅用于编辑器备份和恢复。
 - 项目会自动保存到浏览器 IndexedDB；数据仅保留在当前浏览器本地，不会上传到服务端。
 

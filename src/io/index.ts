@@ -6,6 +6,7 @@ export {
   ProjectBackupFileSchema,
   parseEditorImportText,
   sanitizeFilename,
+  serializeGameStageConfig,
   serializeLevelConfig,
   serializeProjectBackup,
 } from './EditorJsonFile';

@@ -117,8 +117,8 @@ function replaceProjectFromBackup(): void {
   editorStore.replaceProjectFromBackup(pendingImport.value.backup);
   closeImportDialog();
 }
-function exportCurrentLevel(): void {
-  const file = editorStore.createCurrentLevelExport();
+function exportGameStageConfig(): void {
+  const file = editorStore.createGameStageExport();
   downloadJsonFile(file.filename, file.content);
   isExportDialogOpen.value = false;
 }
@@ -263,7 +263,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
     <ExportDialog
       :open="isExportDialogOpen"
       @close="isExportDialogOpen = false"
-      @export-level="exportCurrentLevel"
+      @export-game-config="exportGameStageConfig"
       @export-project="exportProjectBackup"
     />
   </section>

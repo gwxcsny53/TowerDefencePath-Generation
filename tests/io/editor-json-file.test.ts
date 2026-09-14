@@ -8,6 +8,7 @@ import {
   PROJECT_BACKUP_SCHEMA_VERSION,
   ProjectBackupFileSchema,
   sanitizeFilename,
+  serializeGameStageConfig,
   serializeLevelConfig,
   serializeProjectBackup,
 } from '@/io';
@@ -24,6 +25,39 @@ describe('editor JSON files', () => {
     expect(file.filename).toBe('level-c1-s3.json');
     expect(LevelConfigSchema.safeParse(parsed).success).toBe(true);
     expect(parsed).not.toHaveProperty('project');
+    expect(file.content.endsWith('\n')).toBe(true);
+  });
+
+  it('serializes sorted game stage config without changing the input order', () => {
+    const baseLevel = createEditorProject().levels[0]!;
+    const levels = [
+      { ...baseLevel, level: { chapter: 2, stage: 2 } },
+      { ...baseLevel, level: { chapter: 1, stage: 3 } },
+      { ...baseLevel, level: { chapter: 1, stage: 1 } },
+      { ...baseLevel, level: { chapter: 2, stage: 1 } },
+      { ...baseLevel, level: { chapter: 1, stage: 2 } },
+    ];
+    const inputOrder = levels.map(({ level }) => ({ ...level }));
+
+    const file = serializeGameStageConfig(levels);
+    const parsed = JSON.parse(file.content) as unknown;
+
+    expect(file.filename).toBe('stage.json');
+    expect(Array.isArray(parsed)).toBe(true);
+    if (!Array.isArray(parsed)) throw new Error('Game stage config must be an array.');
+    expect(parsed.every((level) => LevelConfigSchema.safeParse(level).success)).toBe(true);
+    expect(parsed).not.toHaveProperty('project');
+    expect(parsed).not.toHaveProperty('format');
+    expect(parsed).not.toHaveProperty('schemaVersion');
+    expect(parsed).not.toHaveProperty('activeLevelAddress');
+    expect(parsed.map((level) => level.level)).toEqual([
+      { chapter: 1, stage: 1 },
+      { chapter: 1, stage: 2 },
+      { chapter: 1, stage: 3 },
+      { chapter: 2, stage: 1 },
+      { chapter: 2, stage: 2 },
+    ]);
+    expect(levels.map(({ level }) => level)).toEqual(inputOrder);
     expect(file.content.endsWith('\n')).toBe(true);
   });
 

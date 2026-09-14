@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; 'export-level': []; 'export-project': [] }>();
+const emit = defineEmits<{ close: []; 'export-game-config': []; 'export-project': [] }>();
 </script>
 
 <template>
@@ -10,8 +10,8 @@ const emit = defineEmits<{ close: []; 'export-level': []; 'export-project': [] }
         <h2>导出</h2>
       </header>
       <div class="export-dialog-content">
-        <button type="button" @click="emit('export-level')">导出当前关卡 JSON</button>
-        <p>用于游戏运行时读取，只包含当前 LevelConfig。</p>
+        <button type="button" @click="emit('export-game-config')">导出游戏关卡配置</button>
+        <p>用于游戏运行时读取，包含当前项目内的全部关卡配置。</p>
         <button type="button" @click="emit('export-project')">导出项目备份</button>
         <p>包含当前项目的全部关卡，用于编辑器备份和恢复。</p>
       </div>

@@ -101,7 +101,7 @@ describe('editor store grid resize', () => {
     store.resizeCurrentLevel({ rows: 3, cols: 3 });
 
     expect(store.selection).toEqual({ kind: 'path', position: { x: 0, y: 0 } });
-    expect(JSON.parse(store.createCurrentLevelExport().content)).toMatchObject({
+    expect(JSON.parse(store.createGameStageExport().content)[0]).toMatchObject({
       grid: { rows: 3, cols: 3 },
       pathCells: [{ x: 0, y: 0 }],
     });

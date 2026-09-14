@@ -53,7 +53,7 @@ import {
   ProjectPersistenceError,
 } from '@/persistence';
 import type { PersistedProjectState, ProjectRepository } from '@/persistence';
-import { serializeLevelConfig, serializeProjectBackup } from '@/io';
+import { serializeGameStageConfig, serializeProjectBackup } from '@/io';
 import type { JsonExportFile, ProjectBackupFile } from '@/io';
 
 interface PendingEditTransaction {
@@ -456,9 +456,9 @@ export const useEditorStore = defineStore('editor', () => {
     workingLevel.value = activeLevel;
     resetLevelSession();
   }
-  function createCurrentLevelExport(): JsonExportFile {
+  function createGameStageExport(): JsonExportFile {
     finishStrokeTransaction();
-    return serializeLevelConfig(workingLevel.value);
+    return serializeGameStageConfig(project.value.levels);
   }
   function createProjectBackupExport(): JsonExportFile {
     finishStrokeTransaction();
@@ -583,7 +583,7 @@ export const useEditorStore = defineStore('editor', () => {
     focusValidationIssue,
     startRoutePreview,
     closeRoutePreview,
-    createCurrentLevelExport,
+    createGameStageExport,
     createProjectBackupExport,
     initializePersistence,
     flushPersistence,

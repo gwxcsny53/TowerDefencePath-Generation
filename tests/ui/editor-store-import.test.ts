@@ -8,7 +8,11 @@ import {
   createProjectLevel,
   findProjectLevel,
 } from '@/editor';
-import { PROJECT_BACKUP_FORMAT, PROJECT_BACKUP_SCHEMA_VERSION, serializeLevelConfig } from '@/io';
+import {
+  PROJECT_BACKUP_FORMAT,
+  PROJECT_BACKUP_SCHEMA_VERSION,
+  serializeGameStageConfig,
+} from '@/io';
 import { PROJECT_PERSISTENCE_SCHEMA_VERSION } from '@/persistence';
 import type { PersistedProjectState, ProjectRepository } from '@/persistence';
 import { useEditorStore } from '@/ui/stores/editorStore';
@@ -112,7 +116,7 @@ describe('editor store import and export', () => {
     expect(store.activeTool).toBe('tower');
   });
 
-  it('exports without changing project, selection, or redo state', () => {
+  it('exports game stage config without changing project, selection, or redo state', () => {
     const store = useEditorStore();
     store.setActiveTool('path');
     store.beginStroke({ x: 1, y: 1 });
@@ -123,18 +127,31 @@ describe('editor store import and export', () => {
     const project = store.project;
     const selection = store.selection;
 
-    const levelFile = store.createCurrentLevelExport();
+    const gameStageFile = store.createGameStageExport();
     const backupFile = store.createProjectBackupExport();
 
     expect(store.project).toBe(project);
     expect(store.selection).toBe(selection);
     expect(store.canRedo).toBe(true);
-    expect(JSON.parse(levelFile.content)).not.toHaveProperty('project');
+    expect(JSON.parse(gameStageFile.content)).toEqual([store.workingLevel]);
     expect(JSON.parse(backupFile.content)).toMatchObject({
       project: { id: 'project_01' },
       activeLevelAddress: store.activeLevelAddress,
     });
-    expect(serializeLevelConfig(store.workingLevel)).toEqual(levelFile);
+    expect(serializeGameStageConfig(store.project.levels)).toEqual(gameStageFile);
+  });
+
+  it('exports all project levels instead of only the working level', () => {
+    const store = useEditorStore();
+    expect(store.addImportedLevel(createImportedLevel(2, 1))).toBe(true);
+
+    const levels = JSON.parse(store.createGameStageExport().content) as { level: unknown }[];
+
+    expect(store.workingLevel.level).toEqual({ chapter: 2, stage: 1 });
+    expect(levels.map((level) => level.level)).toEqual([
+      { chapter: 1, stage: 1 },
+      { chapter: 2, stage: 1 },
+    ]);
   });
 
   it('persists imported structural changes through the existing autosave repository', async () => {

@@ -53,6 +53,18 @@ export function serializeLevelConfig(level: LevelConfig): JsonExportFile {
   };
 }
 
+export function serializeGameStageConfig(levels: readonly LevelConfig[]): JsonExportFile {
+  const parsedLevels = levels.map((level) => LevelConfigSchema.parse(level));
+  const sortedLevels = [...parsedLevels].sort(
+    (left, right) =>
+      left.level.chapter - right.level.chapter || left.level.stage - right.level.stage,
+  );
+  return {
+    filename: 'stage.json',
+    content: toJson(sortedLevels),
+  };
+}
+
 export function serializeProjectBackup(
   project: EditorProject,
   activeLevelAddress: LevelAddress,
