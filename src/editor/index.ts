@@ -1,4 +1,9 @@
-export { EDITOR_TOOLS } from './EditorTool';
+export {
+  EDITOR_TOOLS,
+  EDITOR_TOOL_SHORTCUTS,
+  getEditorToolShortcut,
+  getEditorToolShortcutLabel,
+} from './EditorTool';
 export type { EditorTool } from './EditorTool';
 export type { EditorSelection } from './EditorSelection';
 export {

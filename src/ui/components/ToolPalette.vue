@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EDITOR_TOOLS } from '@/editor';
+import { EDITOR_TOOLS, getEditorToolShortcutLabel } from '@/editor';
 import type { EditorTool } from '@/editor';
 
 defineProps<{ activeTool: EditorTool }>();
@@ -23,10 +23,12 @@ const toolLabels: Record<EditorTool, string> = {
         :key="tool"
         :class="{ 'is-active': activeTool === tool }"
         :aria-pressed="activeTool === tool"
+        :title="`${toolLabels[tool]}（快捷键 ${getEditorToolShortcutLabel(tool)}）`"
         type="button"
         @click="emit('select-tool', tool)"
       >
-        {{ toolLabels[tool] }}
+        <span>{{ toolLabels[tool] }}</span>
+        <kbd>{{ getEditorToolShortcutLabel(tool) }}</kbd>
       </button>
     </div>
   </section>
@@ -66,6 +68,13 @@ const toolLabels: Record<EditorTool, string> = {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 0.25rem;
+}
+
+.tool-palette-actions button kbd {
+  margin-left: 0.375rem;
+  color: inherit;
+  font-size: 0.75rem;
+  opacity: 0.75;
 }
 
 .tool-palette-actions button.is-active {

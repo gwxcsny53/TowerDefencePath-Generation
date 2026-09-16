@@ -14,7 +14,7 @@ import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
 import { useEditorStore } from '@/ui/stores/editorStore';
 import { useRoutePreviewPlayback } from '@/ui/routePreview/useRoutePreviewPlayback';
-import { getNextAvailableStage } from '@/editor';
+import { getEditorToolShortcut, getNextAvailableStage } from '@/editor';
 import type { GridResizeTarget, NewLevelSpec } from '@/editor';
 import { downloadJsonFile, EditorImportError, parseEditorImportText } from '@/io';
 import type { EditorImportPayload } from '@/io';
@@ -42,6 +42,13 @@ const isNewLevelDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
 const isExportDialogOpen = ref(false);
 const isResizeDialogOpen = ref(false);
+const isAnyEditorDialogOpen = computed(
+  () =>
+    isNewLevelDialogOpen.value ||
+    isResizeDialogOpen.value ||
+    isImportDialogOpen.value ||
+    isExportDialogOpen.value,
+);
 const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
 const importError = ref<string | null>(null);
@@ -140,7 +147,19 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 function handleKeyDown(event: KeyboardEvent): void {
-  if ((!event.ctrlKey && !event.metaKey) || isEditableTarget(event.target)) return;
+  if (isEditableTarget(event.target)) return;
+  if (
+    !isAnyEditorDialogOpen.value &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey &&
+    !event.shiftKey
+  ) {
+    const tool = getEditorToolShortcut(event.key);
+    if (tool !== null) editorStore.setActiveTool(tool);
+    return;
+  }
+  if (!event.ctrlKey && !event.metaKey) return;
   const key = event.key.toLowerCase();
   if (key === 'z') {
     event.preventDefault();

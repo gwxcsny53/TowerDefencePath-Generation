@@ -40,6 +40,20 @@ describe('editor store selection reconciliation', () => {
     expect(store.workingLevel.pathCells).toHaveLength(11);
   });
 
+  it('finishes an active stroke before switching tools', () => {
+    const store = useEditorStore();
+    store.setActiveTool('path');
+    store.beginStroke({ x: 0, y: 0 });
+    store.continueStroke({ x: 2, y: 0 });
+
+    store.setActiveTool('eraser');
+
+    expect(store.activeTool).toBe('eraser');
+    expect(store.canUndo).toBe(true);
+    store.undo();
+    expect(store.workingLevel.pathCells).toEqual([]);
+  });
+
   it('records a whole eraser drag and restores all erased cells', () => {
     const store = useEditorStore();
     store.workingLevel = createLevel({
