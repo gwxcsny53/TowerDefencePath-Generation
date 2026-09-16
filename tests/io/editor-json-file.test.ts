@@ -42,7 +42,7 @@ describe('editor JSON files', () => {
     const file = serializeGameStageConfig(levels);
     const parsed = JSON.parse(file.content) as unknown;
 
-    expect(file.filename).toBe('stage.json');
+    expect(file.filename).toBe('battleLevel.json');
     expect(Array.isArray(parsed)).toBe(true);
     if (!Array.isArray(parsed)) throw new Error('Game stage config must be an array.');
     expect(parsed.every((level) => LevelConfigSchema.safeParse(level).success)).toBe(true);
