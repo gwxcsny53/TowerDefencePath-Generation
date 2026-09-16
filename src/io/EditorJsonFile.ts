@@ -60,7 +60,7 @@ export function serializeGameStageConfig(levels: readonly LevelConfig[]): JsonEx
       left.level.chapter - right.level.chapter || left.level.stage - right.level.stage,
   );
   return {
-    filename: 'stage.json',
+    filename: 'battleLevel.json',
     content: toJson(sortedLevels),
   };
 }
