@@ -3,7 +3,11 @@ import { createPinia, setActivePinia } from 'pinia';
 import { nextTick } from 'vue';
 
 import { createEditorProject, createProjectLevel, findProjectLevel } from '@/editor';
-import { PROJECT_PERSISTENCE_SCHEMA_VERSION, ProjectPersistenceError } from '@/persistence';
+import {
+  PersistedProjectStateSchema,
+  PROJECT_PERSISTENCE_SCHEMA_VERSION,
+  ProjectPersistenceError,
+} from '@/persistence';
 import type { PersistedProjectState, ProjectRepository } from '@/persistence';
 import { useEditorStore } from '@/ui/stores/editorStore';
 
@@ -76,6 +80,42 @@ describe('editor store persistence', () => {
     expect(store.canUndo).toBe(false);
     expect(store.validationStatus).toBe('not-run');
     expect(store.routePreviewRun).toBeNull();
+  });
+
+  it('restores legacy spawn timing and persists a subsequent timing edit', async () => {
+    const baseProject = createEditorProject();
+    const legacyState = {
+      schemaVersion: PROJECT_PERSISTENCE_SCHEMA_VERSION,
+      project: {
+        ...baseProject,
+        levels: [
+          {
+            ...baseProject.levels[0]!,
+            pathCells: [
+              { x: 0, y: 0 },
+              { x: 1, y: 0 },
+            ],
+            spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+            endPoints: [{ id: 'end_01', x: 1, y: 0 }],
+          },
+        ],
+      },
+      activeLevelAddress: { chapter: 1, stage: 1 },
+      updatedAt: 1,
+    };
+    const repository = new FakeProjectRepository();
+    repository.state = PersistedProjectStateSchema.parse(legacyState);
+    const store = useEditorStore();
+
+    await store.initializePersistence(repository);
+
+    expect(store.workingLevel.spawnPoints[0]?.moveSecondsPerCell).toBe(0.3);
+    store.selection = { kind: 'spawn', id: 'spawn_01', position: { x: 0, y: 0 } };
+    store.setSelectedSpawnMoveSecondsPerCell(0.8);
+    await store.flushPersistence();
+    expect(repository.savedStates[0]?.project.levels[0]?.spawnPoints[0]?.moveSecondsPerCell).toBe(
+      0.8,
+    );
   });
 
   it('does not initialize autosave after a load failure', async () => {

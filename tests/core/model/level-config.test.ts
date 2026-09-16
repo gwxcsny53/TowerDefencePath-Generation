@@ -17,7 +17,7 @@ const levelConfig: LevelConfig = {
     { x: 2, y: 1 },
     { x: 3, y: 1 },
   ],
-  spawnPoints: [{ id: 'spawn_01', x: 2, y: 0 }],
+  spawnPoints: [{ id: 'spawn_01', x: 2, y: 0, moveSecondsPerCell: 0.3 }],
   endPoints: [{ id: 'end_01', x: 3, y: 1 }],
   junctions: [
     {
@@ -44,7 +44,9 @@ describe('LevelConfig model', () => {
     expect(levelConfig.level).toEqual({ chapter: 1, stage: 3 });
     expect(levelConfig.grid).toEqual({ rows: 20, cols: 20 });
     expect(levelConfig.pathCells).toHaveLength(3);
-    expect(levelConfig.spawnPoints).toEqual([{ id: 'spawn_01', x: 2, y: 0 }]);
+    expect(levelConfig.spawnPoints).toEqual([
+      { id: 'spawn_01', x: 2, y: 0, moveSecondsPerCell: 0.3 },
+    ]);
     expect(levelConfig.endPoints).toEqual([{ id: 'end_01', x: 3, y: 1 }]);
     expect(levelConfig.towerNodes).toEqual([{ id: 'tower_01', x: 5, y: 5, locked: true }]);
   });

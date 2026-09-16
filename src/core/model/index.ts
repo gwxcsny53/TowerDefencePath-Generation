@@ -5,5 +5,6 @@ export type { GridPosition } from './GridPosition';
 export type { Junction, JunctionExit, JunctionTransition } from './Junction';
 export { LEVEL_CONFIG_VERSION } from './LevelConfig';
 export type { GridSize, LevelConfig, LevelConfigVersion, LevelIdentity } from './LevelConfig';
+export { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL } from './SpawnPoint';
 export type { SpawnPoint } from './SpawnPoint';
 export type { TowerNode } from './TowerNode';

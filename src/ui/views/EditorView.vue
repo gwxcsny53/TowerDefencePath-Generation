@@ -53,12 +53,19 @@ const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
 const importError = ref<string | null>(null);
 const selectedPosition = computed(() => selection.value?.position ?? null);
-const routePreviewResult = computed(() => routePreviewRun.value?.result ?? null);
+const routePreviewPlaybackSource = computed(() => {
+  const run = routePreviewRun.value;
+  if (run === null) return null;
+  return {
+    result: run.result,
+    stepDurationMs: run.moveSecondsPerCell * 1000,
+  };
+});
 const {
   frame: routePreviewFrame,
   playbackStatus,
   stop: stopRoutePreview,
-} = useRoutePreviewPlayback(routePreviewResult);
+} = useRoutePreviewPlayback(routePreviewPlaybackSource);
 const routePreviewRenderState = computed(() => {
   if (routePreviewRun.value === null || routePreviewFrame.value === null) return null;
   return {
@@ -221,6 +228,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           :result="routePreviewRun.result"
           :frame="routePreviewFrame"
           :playback-status="playbackStatus"
+          :move-seconds-per-cell="routePreviewRun.moveSecondsPerCell"
           @stop="stopRoutePreview"
           @replay="editorStore.startRoutePreview"
           @close="closeRoutePreview"
@@ -232,6 +240,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           :level="workingLevel"
           :selection="selection"
           @update-tower-locked="editorStore.setSelectedTowerLocked"
+          @update-spawn-move-seconds-per-cell="editorStore.setSelectedSpawnMoveSecondsPerCell"
           @create-junction-config="editorStore.createSelectedJunctionConfig"
           @remove-junction-config="editorStore.removeSelectedJunctionConfig"
           @junction-entry-enabled="editorStore.setSelectedJunctionEntryEnabled"

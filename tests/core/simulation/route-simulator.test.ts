@@ -1,18 +1,29 @@
 import { RouteSimulator } from '@/core/simulation';
-import type { Junction, LevelConfig } from '@/core/model';
+import { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL } from '@/core/model';
+import type { Junction, LevelConfig, SpawnPoint } from '@/core/model';
 import { describe, expect, it } from 'vitest';
 
-function createLevel(overrides: Partial<LevelConfig> = {}): LevelConfig {
+type TestSpawnPointInput = Omit<SpawnPoint, 'moveSecondsPerCell'> &
+  Partial<Pick<SpawnPoint, 'moveSecondsPerCell'>>;
+type TestLevelOverrides = Omit<Partial<LevelConfig>, 'spawnPoints'> & {
+  spawnPoints?: TestSpawnPointInput[];
+};
+
+function createLevel(overrides: TestLevelOverrides = {}): LevelConfig {
+  const { spawnPoints = [], ...levelOverrides } = overrides;
   return {
     version: 1,
     level: { chapter: 1, stage: 1 },
     grid: { rows: 5, cols: 5 },
     pathCells: [],
-    spawnPoints: [],
+    spawnPoints: spawnPoints.map((spawnPoint) => ({
+      ...spawnPoint,
+      moveSecondsPerCell: spawnPoint.moveSecondsPerCell ?? DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
+    })),
     endPoints: [],
     junctions: [],
     towerNodes: [],
-    ...overrides,
+    ...levelOverrides,
   };
 }
 

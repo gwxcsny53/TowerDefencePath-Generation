@@ -7,11 +7,16 @@ import type {
   RoutePreviewFrame,
   RoutePreviewPlaybackStatus,
 } from '@/ui/routePreview/RoutePreviewPlayback';
+import {
+  formatPreviewSeconds,
+  getRoutePreviewTiming,
+} from '@/ui/routePreview/RoutePreviewPlayback';
 
 const props = defineProps<{
   result: RouteSimulationResult;
   frame: RoutePreviewFrame;
   playbackStatus: RoutePreviewPlaybackStatus;
+  moveSecondsPerCell: number;
 }>();
 const emit = defineEmits<{ stop: []; replay: []; close: [] }>();
 const presentation = computed(() => ROUTE_SIMULATION_PRESENTATION[props.result.status]);
@@ -23,12 +28,20 @@ const playbackTitle = computed(() => {
 const progress = computed(() =>
   Math.min(props.result.path.length, props.frame.segmentIndex + (props.frame.completed ? 2 : 1)),
 );
+const timing = computed(() =>
+  getRoutePreviewTiming(props.result.path, props.frame, props.moveSecondsPerCell),
+);
 </script>
 
 <template>
   <section class="route-preview-overlay" aria-label="路线测试结果">
     <h2>路线测试</h2>
     <p class="route-preview-spawn">出生点：{{ result.spawnId }}</p>
+    <p>每格耗时：{{ formatPreviewSeconds(moveSecondsPerCell) }}</p>
+    <p>
+      时间：{{ formatPreviewSeconds(timing.elapsedSeconds) }} /
+      {{ formatPreviewSeconds(timing.totalSeconds) }}
+    </p>
     <p v-if="playbackStatus === 'playing'" class="route-preview-progress">
       进度：{{ progress }} / {{ result.path.length }}
     </p>

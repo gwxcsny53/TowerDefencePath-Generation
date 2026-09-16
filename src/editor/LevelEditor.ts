@@ -1,6 +1,6 @@
 import { GraphBuilder } from '@/core/graph';
 import { GridMap, toGridPositionKey } from '@/core/grid';
-import { LEVEL_CONFIG_VERSION } from '@/core/model';
+import { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL, LEVEL_CONFIG_VERSION } from '@/core/model';
 import type { GridPosition, LevelConfig } from '@/core/model';
 
 import type { EditorSelection } from './EditorSelection';
@@ -79,6 +79,7 @@ export function placeSpawn(level: LevelConfig, position: GridPosition): LevelCon
           level.spawnPoints.map((spawn) => spawn.id),
         ),
         ...position,
+        moveSecondsPerCell: DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
       },
     ],
   };
@@ -140,6 +141,29 @@ export function setTowerLocked(level: LevelConfig, towerId: string, locked: bool
     ...level,
     towerNodes: level.towerNodes.map((towerNode) =>
       towerNode.id === towerId ? { ...towerNode, locked } : towerNode,
+    ),
+  };
+}
+
+export function setSpawnMoveSecondsPerCell(
+  level: LevelConfig,
+  spawnId: string,
+  seconds: number,
+): LevelConfig {
+  const spawn = level.spawnPoints.find((spawnPoint) => spawnPoint.id === spawnId);
+  if (
+    spawn === undefined ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0 ||
+    spawn.moveSecondsPerCell === seconds
+  ) {
+    return level;
+  }
+
+  return {
+    ...level,
+    spawnPoints: level.spawnPoints.map((spawnPoint) =>
+      spawnPoint.id === spawnId ? { ...spawnPoint, moveSecondsPerCell: seconds } : spawnPoint,
     ),
   };
 }

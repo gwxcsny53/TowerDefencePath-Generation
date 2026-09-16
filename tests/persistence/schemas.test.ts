@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL } from '@/core/model';
 import { createEditorProject, createProjectLevel } from '@/editor';
 import {
   EditorProjectSchema,
@@ -59,6 +60,42 @@ describe('persistence schemas', () => {
     expect(LevelConfigSchema.safeParse({ ...level, pathCells: [{ x: 1.5, y: 0 }] }).success).toBe(
       false,
     );
+  });
+
+  it('defaults legacy spawn timing and rejects invalid timing values', () => {
+    const level = createEditorProject().levels[0]!;
+    const legacyLevel = {
+      ...level,
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+    };
+    const parsed = LevelConfigSchema.parse(legacyLevel);
+
+    expect(parsed.spawnPoints[0]?.moveSecondsPerCell).toBe(DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL);
+    expect(
+      LevelConfigSchema.safeParse({
+        ...level,
+        spawnPoints: [{ id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.8 }],
+      }).success,
+    ).toBe(true);
+    for (const moveSecondsPerCell of [0, -0.1, Infinity, Number.NaN]) {
+      expect(
+        LevelConfigSchema.safeParse({
+          ...level,
+          spawnPoints: [{ id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell }],
+        }).success,
+      ).toBe(false);
+    }
+
+    const project = { ...createEditorProject(), levels: [legacyLevel] };
+    expect(EditorProjectSchema.safeParse(project).success).toBe(true);
+    expect(
+      PersistedProjectStateSchema.safeParse({
+        schemaVersion: PROJECT_PERSISTENCE_SCHEMA_VERSION,
+        project,
+        activeLevelAddress: { chapter: 1, stage: 1 },
+        updatedAt: 1,
+      }).data?.project.levels[0]?.spawnPoints[0]?.moveSecondsPerCell,
+    ).toBe(DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL);
   });
 
   it('rejects invalid project addresses and duplicate levels', () => {

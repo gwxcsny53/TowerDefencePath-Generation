@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createEditorProject, createProjectLevel } from '@/editor';
+import { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL } from '@/core/model';
 import {
   EditorImportError,
   parseEditorImportText,
@@ -93,6 +94,49 @@ describe('editor JSON files', () => {
       backup: { format: PROJECT_BACKUP_FORMAT },
     });
     expect(levelPayload.kind === 'level' && levelPayload.level).not.toBe(level);
+  });
+
+  it('imports legacy spawn points with default timing and exports the runtime field', () => {
+    const baseLevel = createEditorProject().levels[0]!;
+    const legacyLevel = {
+      ...baseLevel,
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0 }],
+      endPoints: [{ id: 'end_01', x: 1, y: 0 }],
+    };
+    const levelPayload = parseEditorImportText(JSON.stringify(legacyLevel));
+    if (levelPayload.kind !== 'level') throw new Error('Expected a level payload.');
+    const exportedLevel = JSON.parse(serializeLevelConfig(levelPayload.level).content) as {
+      spawnPoints: { moveSecondsPerCell: number }[];
+    };
+
+    expect(levelPayload.level.spawnPoints[0]?.moveSecondsPerCell).toBe(
+      DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
+    );
+    expect(exportedLevel.spawnPoints[0]?.moveSecondsPerCell).toBe(
+      DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
+    );
+
+    const backupPayload = parseEditorImportText(
+      JSON.stringify({
+        format: PROJECT_BACKUP_FORMAT,
+        schemaVersion: PROJECT_BACKUP_SCHEMA_VERSION,
+        project: { ...createEditorProject(), levels: [legacyLevel] },
+        activeLevelAddress: { chapter: 1, stage: 1 },
+      }),
+    );
+    if (backupPayload.kind !== 'project-backup') throw new Error('Expected a project backup.');
+    expect(backupPayload.backup.project.levels[0]?.spawnPoints[0]?.moveSecondsPerCell).toBe(
+      DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
+    );
+    expect(
+      JSON.parse(
+        serializeProjectBackup(backupPayload.backup.project, { chapter: 1, stage: 1 }).content,
+      ).project.levels[0].spawnPoints[0].moveSecondsPerCell,
+    ).toBe(DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL);
   });
 
   it('rejects a project backup with duplicate level addresses', () => {

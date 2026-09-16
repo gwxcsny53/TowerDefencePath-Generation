@@ -98,4 +98,15 @@ describe('level grid resize', () => {
       'JUNCTION_POSITION_INVALID',
     );
   });
+
+  it('retains movement timing on in-bounds spawn points', () => {
+    const level = createLevel({
+      grid: { rows: 4, cols: 4 },
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.75 }],
+    });
+    const resized = resizeLevelGrid(level, { rows: 3, cols: 3 });
+
+    expect(resized.spawnPoints).toEqual([{ id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.75 }]);
+    expect(resized.spawnPoints[0]).toBe(level.spawnPoints[0]);
+  });
 });

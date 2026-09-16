@@ -95,7 +95,7 @@ describe('EditorProject', () => {
               { x: 0, y: 1 },
               { x: 2, y: 1 },
             ],
-            spawnPoints: [{ id: 'spawn_01', x: 0, y: 1 }],
+            spawnPoints: [{ id: 'spawn_01', x: 0, y: 1, moveSecondsPerCell: 0.75 }],
             endPoints: [{ id: 'end_01', x: 2, y: 1 }],
             towerNodes: [{ id: 'tower_01', x: 3, y: 3, locked: false }],
           },
@@ -117,6 +117,7 @@ describe('EditorProject', () => {
 
     expect(clone).toEqual(original);
     expect(clone.pathCells).not.toBe(original.pathCells);
+    expect(clone.spawnPoints[0]).not.toBe(original.spawnPoints[0]);
     expect(clone.junctions[0]?.transitions).not.toBe(original.junctions[0]?.transitions);
     expect(clone.junctions[0]?.transitions[0]?.exits).not.toBe(
       original.junctions[0]?.transitions[0]?.exits,
@@ -126,6 +127,7 @@ describe('EditorProject', () => {
     expect(copy?.pathCells).toEqual(original.pathCells);
     expect(copy?.pathCells).not.toBe(original.pathCells);
     expect(copy?.spawnPoints).toEqual(original.spawnPoints);
+    expect(copy?.spawnPoints[0]).not.toBe(original.spawnPoints[0]);
     expect(copy?.endPoints).toEqual(original.endPoints);
     expect(copy?.towerNodes).toEqual(original.towerNodes);
     expect(copy?.junctions[0]?.transitions[0]?.exits).not.toBe(

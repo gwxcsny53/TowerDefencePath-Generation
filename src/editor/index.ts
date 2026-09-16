@@ -16,6 +16,7 @@ export {
   placeSpawn,
   placeTower,
   selectAt,
+  setSpawnMoveSecondsPerCell,
   setTowerLocked,
 } from './LevelEditor';
 export { rasterizeOrthogonalSegment } from './OrthogonalStroke';

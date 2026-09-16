@@ -23,6 +23,7 @@ import {
   setJunctionEntryEnabled,
   setJunctionExitEnabled,
   setJunctionExitWeight,
+  setSpawnMoveSecondsPerCell,
   selectAt,
   setTowerLocked,
   sortProjectLevels,
@@ -74,6 +75,7 @@ export interface ValidationRun {
 export interface RoutePreviewRun {
   readonly level: LevelConfig;
   readonly result: RouteSimulationResult;
+  readonly moveSecondsPerCell: number;
 }
 
 export const useEditorStore = defineStore('editor', () => {
@@ -355,6 +357,7 @@ export const useEditorStore = defineStore('editor', () => {
     routePreviewRun.value = {
       level,
       result: RouteSimulator.simulate(level, spawn.id),
+      moveSecondsPerCell: spawn.moveSecondsPerCell,
     };
   }
   function closeRoutePreview(): void {
@@ -501,6 +504,13 @@ export const useEditorStore = defineStore('editor', () => {
     const towerId = selection.value.id;
     executeEdit('修改塔位锁定', (level) => setTowerLocked(level, towerId, locked));
   }
+  function setSelectedSpawnMoveSecondsPerCell(seconds: number): void {
+    if (selection.value?.kind !== 'spawn') return;
+    const spawnId = selection.value.id;
+    executeEdit('修改出生点每格耗时', (level) =>
+      setSpawnMoveSecondsPerCell(level, spawnId, seconds),
+    );
+  }
   function reconcileSelectionAtCurrentPosition(): void {
     if (selection.value !== null)
       selection.value = selectAt(workingLevel.value, selection.value.position);
@@ -597,6 +607,7 @@ export const useEditorStore = defineStore('editor', () => {
     addImportedLevelAsCopy,
     replaceProjectFromBackup,
     setSelectedTowerLocked,
+    setSelectedSpawnMoveSecondsPerCell,
     createSelectedJunctionConfig,
     removeSelectedJunctionConfig,
     setSelectedJunctionEntryEnabled,

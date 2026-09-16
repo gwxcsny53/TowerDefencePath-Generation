@@ -8,8 +8,10 @@ import {
   placeSpawn,
   placeTower,
   selectAt,
+  setSpawnMoveSecondsPerCell,
   setTowerLocked,
 } from '@/editor';
+import { DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL } from '@/core/model';
 import { createLevel } from '../core/validation/fixtures';
 
 describe('level editor operations', () => {
@@ -52,7 +54,14 @@ describe('level editor operations', () => {
       { x: 1, y: 0 },
       { x: 2, y: 0 },
     ]);
-    expect(placeSpawn(path, { x: 0, y: 0 }).spawnPoints).toHaveLength(1);
+    expect(placeSpawn(path, { x: 0, y: 0 }).spawnPoints).toEqual([
+      {
+        id: 'spawn_01',
+        x: 0,
+        y: 0,
+        moveSecondsPerCell: DEFAULT_SPAWN_MOVE_SECONDS_PER_CELL,
+      },
+    ]);
     expect(placeEnd(path, { x: 2, y: 0 }).endPoints).toHaveLength(1);
     expect(placeSpawn(path, { x: 1, y: 0 })).toBe(path);
     expect(placeEnd(path, { x: 4, y: 4 })).toBe(path);
@@ -67,6 +76,29 @@ describe('level editor operations', () => {
     expect(selectAt(level, { x: 1, y: 1 })).toMatchObject({ kind: 'tower', id: 'tower_01' });
     expect(selectAt(level, { x: 4, y: 4 })).toBeNull();
     expect(setTowerLocked(level, 'tower_01', true).towerNodes[0].locked).toBe(true);
+  });
+  it('updates only the requested spawn movement timing immutably', () => {
+    const level = createLevel({
+      spawnPoints: [
+        { id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.2 },
+        { id: 'spawn_02', x: 0, y: 1, moveSecondsPerCell: 0.8 },
+      ],
+    });
+    const before = structuredClone(level);
+    const updated = setSpawnMoveSecondsPerCell(level, 'spawn_01', 0.5);
+
+    expect(level).toEqual(before);
+    expect(updated.spawnPoints).toEqual([
+      { id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.5 },
+      { id: 'spawn_02', x: 0, y: 1, moveSecondsPerCell: 0.8 },
+    ]);
+    expect(updated.spawnPoints[1]).toBe(level.spawnPoints[1]);
+    expect(setSpawnMoveSecondsPerCell(level, 'missing', 0.5)).toBe(level);
+    expect(setSpawnMoveSecondsPerCell(level, 'spawn_01', 0.2)).toBe(level);
+    expect(setSpawnMoveSecondsPerCell(level, 'spawn_01', 0)).toBe(level);
+    expect(setSpawnMoveSecondsPerCell(level, 'spawn_01', -0.1)).toBe(level);
+    expect(setSpawnMoveSecondsPerCell(level, 'spawn_01', Infinity)).toBe(level);
+    expect(setSpawnMoveSecondsPerCell(level, 'spawn_01', Number.NaN)).toBe(level);
   });
   it('selects path, spawn, and end cells when no higher-priority entity exists', () => {
     const level = createLevel({

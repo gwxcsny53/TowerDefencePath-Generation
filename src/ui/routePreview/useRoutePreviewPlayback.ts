@@ -9,7 +9,12 @@ import {
   type RoutePreviewPlaybackStatus,
 } from './RoutePreviewPlayback';
 
-export function useRoutePreviewPlayback(result: Ref<RouteSimulationResult | null>) {
+export interface RoutePreviewPlaybackSource {
+  readonly result: RouteSimulationResult;
+  readonly stepDurationMs: number;
+}
+
+export function useRoutePreviewPlayback(source: Ref<RoutePreviewPlaybackSource | null>) {
   const frame = ref<RoutePreviewFrame | null>(null);
   const playbackStatus = ref<RoutePreviewPlaybackStatus>('idle');
   let animationFrameId: number | null = null;
@@ -20,9 +25,13 @@ export function useRoutePreviewPlayback(result: Ref<RouteSimulationResult | null
     animationFrameId = null;
   }
   function tick(timestamp: number): void {
-    const currentResult = result.value;
-    if (currentResult === null) return;
-    const nextFrame = getRoutePreviewFrame(currentResult.path, timestamp - startedAt);
+    const currentSource = source.value;
+    if (currentSource === null) return;
+    const nextFrame = getRoutePreviewFrame(
+      currentSource.result.path,
+      timestamp - startedAt,
+      currentSource.stepDurationMs,
+    );
     frame.value = nextFrame;
     if (nextFrame.completed) {
       playbackStatus.value = 'completed';
@@ -33,13 +42,13 @@ export function useRoutePreviewPlayback(result: Ref<RouteSimulationResult | null
   }
   function start(): void {
     cancelPlaybackFrame();
-    const currentResult = result.value;
-    if (currentResult === null) {
+    const currentSource = source.value;
+    if (currentSource === null) {
       frame.value = null;
       playbackStatus.value = 'idle';
       return;
     }
-    frame.value = getRoutePreviewFrame(currentResult.path, 0);
+    frame.value = getRoutePreviewFrame(currentSource.result.path, 0, currentSource.stepDurationMs);
     if (frame.value.completed) {
       playbackStatus.value = 'completed';
       return;
@@ -50,11 +59,11 @@ export function useRoutePreviewPlayback(result: Ref<RouteSimulationResult | null
   }
   function stop(): void {
     cancelPlaybackFrame();
-    if (result.value !== null && frame.value !== null && !frame.value.completed)
+    if (source.value !== null && frame.value !== null && !frame.value.completed)
       playbackStatus.value = 'stopped';
   }
 
-  watch(result, start, { flush: 'sync' });
+  watch(source, start, { flush: 'sync' });
   onBeforeUnmount(cancelPlaybackFrame);
 
   return { frame, playbackStatus, start, stop };

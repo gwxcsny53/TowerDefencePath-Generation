@@ -84,6 +84,7 @@ describe('editor store grid resize', () => {
     store.routePreviewRun = {
       level: store.workingLevel,
       result: { status: 'reached-end', spawnId: 'spawn_01', path: [] },
+      moveSecondsPerCell: 0.3,
     };
 
     store.resizeCurrentLevel({ rows: 4, cols: 2 });

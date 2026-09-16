@@ -92,6 +92,41 @@ describe('editor store selection reconciliation', () => {
     expect(store.workingLevel.towerNodes[0]?.locked).toBe(true);
   });
 
+  it('updates selected spawn timing through history and invalidates its preview', () => {
+    const store = useEditorStore();
+    store.workingLevel = createLevel({
+      pathCells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      spawnPoints: [{ id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.3 }],
+      endPoints: [{ id: 'end_01', x: 2, y: 0 }],
+    });
+    store.selection = { kind: 'spawn', id: 'spawn_01', position: { x: 0, y: 0 } };
+    store.runValidation();
+    store.startRoutePreview();
+
+    expect(store.routePreviewRun?.moveSecondsPerCell).toBe(0.3);
+    store.setSelectedSpawnMoveSecondsPerCell(0.8);
+    expect(store.workingLevel.spawnPoints[0]?.moveSecondsPerCell).toBe(0.8);
+    expect(
+      findProjectLevel(store.project, store.activeLevelAddress)?.spawnPoints[0]?.moveSecondsPerCell,
+    ).toBe(0.8);
+    expect(store.validationStatus).toBe('stale');
+    expect(store.routePreviewRun).toBeNull();
+    expect(store.activeTool).toBe('select');
+    store.undo();
+    expect(store.workingLevel.spawnPoints[0]?.moveSecondsPerCell).toBe(0.3);
+    expect(store.canRedo).toBe(true);
+    store.setSelectedSpawnMoveSecondsPerCell(0);
+    expect(store.canRedo).toBe(true);
+    store.setSelectedSpawnMoveSecondsPerCell(0.3);
+    expect(store.canRedo).toBe(true);
+    store.redo();
+    expect(store.workingLevel.spawnPoints[0]?.moveSecondsPerCell).toBe(0.8);
+  });
+
   it('undoes and redoes endpoint placement without recording invalid edits', () => {
     const store = useEditorStore();
     store.workingLevel = createLevel({
@@ -298,8 +333,8 @@ describe('editor store selection reconciliation', () => {
         { x: 2, y: 2 },
       ],
       spawnPoints: [
-        { id: 'spawn_01', x: 0, y: 0 },
-        { id: 'spawn_02', x: 0, y: 2 },
+        { id: 'spawn_01', x: 0, y: 0, moveSecondsPerCell: 0.2 },
+        { id: 'spawn_02', x: 0, y: 2, moveSecondsPerCell: 0.8 },
       ],
       endPoints: [
         { id: 'end_01', x: 2, y: 0 },
@@ -316,6 +351,7 @@ describe('editor store selection reconciliation', () => {
 
     store.startRoutePreview();
     expect(store.routePreviewRun?.result.spawnId).toBe('spawn_02');
+    expect(store.routePreviewRun?.moveSecondsPerCell).toBe(0.8);
     store.beginStroke({ x: 1, y: 2 });
     expect(store.canTestRoute).toBe(false);
   });

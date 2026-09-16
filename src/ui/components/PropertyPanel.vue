@@ -7,6 +7,7 @@ import JunctionPanel from './JunctionPanel.vue';
 const props = defineProps<{ level: LevelConfig; selection: EditorSelection | null }>();
 const emit = defineEmits<{
   'update-tower-locked': [locked: boolean];
+  'update-spawn-move-seconds-per-cell': [seconds: number];
   'create-junction-config': [];
   'remove-junction-config': [];
   'junction-entry-enabled': [direction: import('@/core/model').Direction, enabled: boolean];
@@ -26,8 +27,22 @@ const tower = computed(() => {
   if (selected?.kind !== 'tower') return undefined;
   return props.level.towerNodes.find((node) => node.id === selected.id);
 });
+const spawn = computed(() => {
+  const selected = props.selection;
+  if (selected?.kind !== 'spawn') return undefined;
+  return props.level.spawnPoints.find((node) => node.id === selected.id);
+});
 function updateTowerLocked(event: Event): void {
   if (event.target instanceof HTMLInputElement) emit('update-tower-locked', event.target.checked);
+}
+function updateSpawnMoveSecondsPerCell(event: Event): void {
+  if (!(event.target instanceof HTMLInputElement)) return;
+  const seconds = event.target.valueAsNumber;
+  if (Number.isFinite(seconds) && seconds > 0) {
+    emit('update-spawn-move-seconds-per-cell', seconds);
+    return;
+  }
+  event.target.value = spawn.value?.moveSecondsPerCell.toString() ?? '';
 }
 </script>
 
@@ -77,6 +92,18 @@ function updateTowerLocked(event: Event): void {
           ><dt>初始锁定</dt>
           <dd><input type="checkbox" :checked="tower.locked" @change="updateTowerLocked" /></dd
         ></template>
+        <template v-if="selection.kind === 'spawn' && spawn"
+          ><dt>每格耗时</dt>
+          <dd>
+            <input
+              type="number"
+              step="any"
+              :value="spawn.moveSecondsPerCell"
+              @change="updateSpawnMoveSecondsPerCell"
+            />
+            秒
+          </dd></template
+        >
       </dl>
     </div>
   </section>
