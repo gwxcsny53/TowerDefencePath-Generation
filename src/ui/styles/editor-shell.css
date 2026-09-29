@@ -260,6 +260,14 @@
     box-shadow: var(--shadow-floating);
     pointer-events: auto;
   }
+
+  .editor-overlay-toggle--level {
+    margin-right: auto;
+  }
+
+  .editor-overlay-toggle--inspector {
+    margin-left: auto;
+  }
 }
 
 @media (max-width: 899px) {

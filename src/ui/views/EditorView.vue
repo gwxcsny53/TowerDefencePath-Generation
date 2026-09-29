@@ -272,10 +272,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         />
         <div class="editor-floating-ui-layer">
           <div class="editor-overlay-toggle-bar" aria-label="编辑器面板">
-            <button v-if="!isLevelOverlayOpen" type="button" @click="toggleLevelOverlay">
+            <button
+              v-if="!isLevelOverlayOpen"
+              class="editor-overlay-toggle--level"
+              type="button"
+              @click="toggleLevelOverlay"
+            >
               关卡
             </button>
-            <button v-if="!isInspectorOverlayOpen" type="button" @click="toggleInspectorOverlay">
+            <button
+              v-if="!isInspectorOverlayOpen"
+              class="editor-overlay-toggle--inspector"
+              type="button"
+              @click="toggleInspectorOverlay"
+            >
               属性
             </button>
           </div>

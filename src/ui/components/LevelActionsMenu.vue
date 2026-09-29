@@ -13,7 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <UiPopover>
+  <UiPopover placement="auto">
     <template #trigger="{ toggle }">
       <UiIconButton label="当前关卡操作" size="compact" @click="toggle">
         <MoreHorizontal :size="16" aria-hidden="true" />

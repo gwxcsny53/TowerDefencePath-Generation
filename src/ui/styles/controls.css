@@ -214,13 +214,25 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-menu);
   box-shadow: var(--shadow-floating);
+  -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
   transform-origin: top right;
   animation: ui-popover-enter var(--motion-normal) var(--ease-standard);
+}
+
+.ui-popover__content--top {
+  top: auto;
+  bottom: calc(100% + var(--space-2));
+  transform-origin: bottom right;
 }
 
 .ui-popover__content .ui-button {
   width: 100%;
   justify-content: flex-start;
+}
+
+.ui-popover__content .ui-button--ghost:not(:disabled) {
+  color: var(--text-primary);
 }
 
 .ui-dialog-backdrop {
