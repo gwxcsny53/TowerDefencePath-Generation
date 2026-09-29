@@ -68,6 +68,7 @@
   --shadow-floating: 0 12px 36px rgba(0, 0, 0, 0.3);
   --shadow-liquid: 0 0 16px rgba(77, 163, 255, 0.08);
   --shadow-focus: 0 0 0 3px rgba(77, 163, 255, 0.1);
+  --shadow-invalid: 0 0 0 3px rgba(239, 68, 68, 0.1);
 
   /* Motion */
   --motion-fast: 100ms;

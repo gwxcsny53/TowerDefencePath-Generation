@@ -50,7 +50,7 @@ canvas {
 :where(input, select, textarea)[aria-invalid='true'],
 [data-invalid='true'] {
   border-color: var(--status-danger);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: var(--shadow-invalid);
 }
 
 ::selection {

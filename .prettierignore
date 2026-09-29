@@ -4,3 +4,5 @@ coverage/
 package-lock.json
 Tower Defense Path Generation.md
 Tower_Defense_Path_Editor_Implementation_Plan.md
+# Manually maintained visual source of truth; preserve intentional formatting.
+TDPE_UI_Design_System_v1.md

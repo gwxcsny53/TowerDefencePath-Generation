@@ -1,26 +1,30 @@
+.tdpe-transition-fast,
+.tdpe-transition-normal,
+.tdpe-transition-panel,
+.tdpe-transition-liquid,
+.tdpe-transition-modal {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-timing-function: var(--ease-standard);
+}
+
 .tdpe-transition-fast {
   transition-duration: var(--motion-fast);
-  transition-timing-function: var(--ease-standard);
 }
 
 .tdpe-transition-normal {
   transition-duration: var(--motion-normal);
-  transition-timing-function: var(--ease-standard);
 }
 
 .tdpe-transition-panel {
   transition-duration: var(--motion-panel);
-  transition-timing-function: var(--ease-standard);
 }
 
 .tdpe-transition-liquid {
   transition-duration: var(--motion-liquid);
-  transition-timing-function: var(--ease-standard);
 }
 
 .tdpe-transition-modal {
   transition-duration: var(--motion-modal);
-  transition-timing-function: var(--ease-standard);
 }
 
 @media (prefers-reduced-motion: reduce) {
