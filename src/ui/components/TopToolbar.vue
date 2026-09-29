@@ -4,7 +4,6 @@ import { ListChecks, MoreHorizontal, Play, Redo2, Undo2 } from 'lucide-vue-next'
 import UiButton from '@/ui/components/base/UiButton.vue';
 import UiIconButton from '@/ui/components/base/UiIconButton.vue';
 import UiPopover from '@/ui/components/base/UiPopover.vue';
-import UiTooltip from '@/ui/components/base/UiTooltip.vue';
 
 defineProps<{
   canUndo: boolean;
@@ -39,39 +38,18 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
     </div>
 
     <nav class="top-toolbar-history" aria-label="历史操作">
-      <UiTooltip text="撤销" shortcut="Ctrl/Cmd + Z" placement="bottom">
-        <template #default="{ tooltipId }">
-          <UiIconButton
-            label="撤销"
-            :aria-describedby="tooltipId"
-            size="compact"
-            :disabled="!canUndo"
-            @click="emit('undo')"
-          >
-            <Undo2 :size="16" aria-hidden="true" />
-          </UiIconButton>
-        </template>
-      </UiTooltip>
-      <UiTooltip text="重做" shortcut="Ctrl/Cmd + Y" placement="bottom">
-        <template #default="{ tooltipId }">
-          <UiIconButton
-            label="重做"
-            :aria-describedby="tooltipId"
-            size="compact"
-            :disabled="!canRedo"
-            @click="emit('redo')"
-          >
-            <Redo2 :size="16" aria-hidden="true" />
-          </UiIconButton>
-        </template>
-      </UiTooltip>
+      <UiIconButton label="撤销" size="compact" :disabled="!canUndo" @click="emit('undo')">
+        <Undo2 :size="16" aria-hidden="true" />
+      </UiIconButton>
+      <UiIconButton label="重做" size="compact" :disabled="!canRedo" @click="emit('redo')">
+        <Redo2 :size="16" aria-hidden="true" />
+      </UiIconButton>
     </nav>
 
     <nav class="top-toolbar-actions" aria-label="编辑器操作">
       <span
         class="top-toolbar-persistence"
         :class="`top-toolbar-persistence--${persistenceStatus}`"
-        :title="persistenceError ?? undefined"
       >
         {{
           persistenceStatus === 'loading'
@@ -87,35 +65,21 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
         <ListChecks :size="16" aria-hidden="true" />
         校验
       </UiButton>
-      <UiTooltip :text="testRouteTitle" placement="bottom">
-        <template #default="{ tooltipId }">
-          <UiButton
-            variant="primary"
-            :aria-describedby="tooltipId"
-            :disabled="!canTestRoute"
-            @click="emit('test-route')"
-          >
-            <Play :size="18" aria-hidden="true" />
-            测试路线
-          </UiButton>
-        </template>
-      </UiTooltip>
+      <UiButton variant="primary" :disabled="!canTestRoute" @click="emit('test-route')">
+        <Play :size="18" aria-hidden="true" />
+        测试路线
+      </UiButton>
       <UiPopover>
         <template #trigger="{ open, toggle }">
-          <UiTooltip text="更多操作" placement="bottom">
-            <template #default="{ tooltipId }">
-              <UiIconButton
-                label="更多操作"
-                :aria-describedby="tooltipId"
-                size="normal"
-                aria-haspopup="menu"
-                :aria-expanded="open"
-                @click="toggle"
-              >
-                <MoreHorizontal :size="18" aria-hidden="true" />
-              </UiIconButton>
-            </template>
-          </UiTooltip>
+          <UiIconButton
+            label="更多操作"
+            size="normal"
+            aria-haspopup="menu"
+            :aria-expanded="open"
+            @click="toggle"
+          >
+            <MoreHorizontal :size="18" aria-hidden="true" />
+          </UiIconButton>
         </template>
         <template #default="{ close }">
           <div class="top-toolbar-more-menu" role="menu" aria-label="更多操作">
@@ -145,6 +109,8 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
 
 <style scoped>
 .top-toolbar {
+  position: relative;
+  z-index: var(--z-floating);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;

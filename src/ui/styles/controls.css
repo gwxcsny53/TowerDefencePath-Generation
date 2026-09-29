@@ -122,6 +122,7 @@
 }
 
 .ui-number-input {
+  appearance: textfield;
   width: 100%;
   height: var(--control-height-md);
   min-width: 0;
@@ -131,6 +132,13 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-control);
   outline: none;
+}
+
+.ui-number-input::-webkit-inner-spin-button,
+.ui-number-input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .ui-number-input:hover:not(:disabled) {
@@ -146,60 +154,6 @@
 .ui-number-input[aria-invalid='true'] {
   border-color: var(--status-danger);
   box-shadow: var(--shadow-invalid);
-}
-
-.ui-tooltip {
-  position: relative;
-  display: inline-flex;
-}
-
-.ui-tooltip__content {
-  position: absolute;
-  z-index: var(--z-tooltip);
-  display: grid;
-  gap: var(--space-1);
-  width: max-content;
-  max-width: 240px;
-  padding: var(--space-2);
-  color: var(--text-primary);
-  font-size: var(--font-size-metadata);
-  line-height: 1.35;
-  pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
-  background: var(--glass-g2-background);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-control);
-  box-shadow: var(--shadow-floating);
-  transition:
-    opacity var(--motion-fast) var(--ease-standard) 400ms,
-    transform var(--motion-fast) var(--ease-standard) 400ms,
-    visibility 0ms linear calc(400ms + var(--motion-fast));
-}
-
-.ui-tooltip__content--top {
-  bottom: calc(100% + var(--space-2));
-  left: 50%;
-  transform: translate(-50%, 3px);
-}
-
-.ui-tooltip__content--bottom {
-  top: calc(100% + var(--space-2));
-  left: 50%;
-  transform: translate(-50%, -3px);
-}
-
-.ui-tooltip:hover .ui-tooltip__content,
-.ui-tooltip:focus-within .ui-tooltip__content {
-  visibility: visible;
-  opacity: 1;
-  transform: translate(-50%, 0);
-  transition-delay: 400ms;
-}
-
-.ui-tooltip__shortcut {
-  color: var(--text-muted);
-  font-size: var(--font-size-section);
 }
 
 .ui-popover {

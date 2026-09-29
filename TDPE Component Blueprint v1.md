@@ -131,29 +131,12 @@ Lens 宽度可以：
 ↓
 36px
 
-这就是“液态感”，而不是单纯 translate。6. Tool Tooltip 蓝图
-Hover Tool 后：
-╭────────────────╮
-│ Draw Path │
-│ Shortcut 2 │
-╰────────────────╯
-▲
+这就是“液态感”，而不是单纯 translate。6. Hover Tooltip 产品决策
+当前产品不使用自定义 Hover Tooltip，也不使用原生 title 代替。
 
-参数
-参数 定义
-Delay 400ms
-Width Auto
-Min height 38px
-Radius 8px
-Glass G2
-Font 12px
-Secondary 11px
-
-动画：
-opacity 0 → 1
-translateY 3px → 0
-
-100–120ms。7. LevelPanel 蓝图
+IconButton 必须提供准确的 aria-label。
+快捷键、Disabled 原因或其他必要说明应使用可见文案、Popover、Dialog 或帮助文档表达，不能只在鼠标悬停时显示。
+未经新的产品决策与设计系统修订，不得重新引入 Hover Tooltip。7. LevelPanel 蓝图
 G1。
 顶部：
 LEVELS +
@@ -689,7 +672,7 @@ StatusBar
 把动画正式 Token 化。
 Token Duration 用途
 motion.fast 100ms Hover
-motion.normal 180ms Tooltip/Input
+motion.normal 180ms Popover/Input
 motion.panel 220ms Drawer/Panel
 motion.liquid 260ms Lens
 motion.modal 180ms Dialog

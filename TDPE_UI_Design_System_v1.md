@@ -86,7 +86,6 @@ Canvas 必须：
 - Dialog
 - Route Preview
 - Validation Drawer
-- Tooltip
 - Popover
 
 ## 3.3 Liquid 是交互焦点
@@ -111,7 +110,7 @@ Canvas 必须：
 |---|---|---|---:|---:|---:|
 | G0 | Workspace | Canvas、主工作区 | 0 | 无 | 无 |
 | G1 | Glass Surface | Level、Inspector、Dialog、Drawer | 16–20px | 极弱 | 极轻 |
-| G2 | Floating Glass | TopBar、ToolDock、Preview、Tooltip | 22–28px | 中等 | 中 |
+| G2 | Floating Glass | TopBar、ToolDock、Preview、Popover | 22–28px | 中等 | 中 |
 | G3 | Liquid Lens | Active Tool、Toggle、Slider、Tab | 8–14px | 强 | 强 |
 
 视觉层级：
@@ -242,7 +241,6 @@ box-shadow: 0 12px 36px rgba(0,0,0,.30);
 - TopBar
 - ToolDock
 - RoutePreview
-- Tooltip
 - ContextMenu
 - Popover
 - Toast
@@ -353,7 +351,7 @@ letter-spacing: .06em;
 | Token | Duration | 用途 |
 |---|---:|---|
 | `--motion-fast` | 100ms | Hover / Press |
-| `--motion-normal` | 180ms | Input / Tooltip |
+| `--motion-normal` | 180ms | Input / Popover |
 | `--motion-panel` | 220ms | Panel / Drawer |
 | `--motion-liquid` | 260ms | Liquid Lens |
 | `--motion-modal` | 180ms | Dialog |
@@ -383,7 +381,6 @@ Liquid：
 | Drawer | 40 |
 | Backdrop | 50 |
 | Dialog | 60 |
-| Tooltip | 70 |
 | Toast | 80 |
 
 禁止组件自行使用任意 `z-index: 9999`。
@@ -496,7 +493,7 @@ Inspector    336px
 | Diamond | Tower |
 | Eraser | Eraser |
 
-文本通过 Tooltip 提供。
+ToolDock 不使用 Hover Tooltip。每个 IconButton 必须提供准确的 `aria-label`；快捷键说明通过可见帮助或文档提供，不依赖鼠标悬停。
 
 ---
 
@@ -1115,29 +1112,16 @@ Saved：
 
 ---
 
-# 38. Tooltip
+# 38. Hover Tooltip（当前不使用）
 
-| 属性 | 定义 |
-|---|---|
-| Material | G2 |
-| Radius | 8px |
-| Font | 12px |
-| Delay | 400ms |
-| Enter | 100–120ms |
+当前产品不使用自定义 Hover Tooltip，也不使用原生 `title` 作为替代。
 
-结构：
+交互信息遵循：
 
-```text
-Draw Path
-Shortcut 2
-```
-
-动画：
-
-```text
-opacity 0 → 1
-translateY 3px → 0
-```
+- IconButton 必须提供准确的 `aria-label`。
+- 关键操作保留可见文字，不把含义只放在 Hover 状态中。
+- Disabled 原因或快捷键说明如需展示，应使用页面内可见文案、Popover、Dialog 或帮助文档。
+- 未经新的产品决策与设计系统修订，不得重新引入 Hover Tooltip 组件。
 
 ---
 
@@ -1368,7 +1352,7 @@ ToolDock 尺寸保持不变。
 
 必须：
 
-- 所有 IconButton 有 Tooltip / aria-label。
+- 所有 IconButton 都有准确的 `aria-label`，不依赖 Hover Tooltip 或原生 `title`。
 - Focus Visible 必须存在。
 - Disabled 必须具有视觉差异。
 - 状态不能只依赖颜色。
@@ -1529,7 +1513,7 @@ Editor
 - Input
 - Checkbox
 - Toggle
-- Tooltip
+- Hover Tooltip（不实现；当前产品不使用）
 - Popover
 - Dialog
 
