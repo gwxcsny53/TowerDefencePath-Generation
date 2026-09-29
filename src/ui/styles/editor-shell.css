@@ -1,0 +1,217 @@
+/* M2 Editor Shell: structural presentation only. */
+.editor-view {
+  position: relative;
+  display: grid;
+  grid-template-rows: 48px minmax(0, 1fr) 208px 32px;
+  gap: var(--space-3);
+  width: 100vw;
+  height: 100vh;
+  padding: var(--space-3);
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.editor-workspace {
+  position: relative;
+  display: grid;
+  grid-template-columns: 228px minmax(0, 1fr) 336px;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-level-area,
+.editor-property-area {
+  z-index: var(--z-panel);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* M2 compatibility surface: M4 replaces the light legacy panel content. */
+.editor-legacy-panel-frame {
+  padding: 1px;
+  background: var(--glass-g1-background);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.editor-canvas-stage {
+  position: relative;
+  z-index: var(--z-canvas);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-workspace);
+  border-radius: var(--radius-panel);
+}
+
+.editor-floating-ui-layer,
+.editor-drawer-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.editor-floating-ui-layer {
+  z-index: var(--z-floating);
+}
+
+.editor-drawer-layer {
+  z-index: var(--z-drawer);
+}
+
+.editor-floating-ui-layer > *,
+.editor-drawer-layer > * {
+  pointer-events: auto;
+}
+
+/* Temporary M2 compatibility host. Removed/restructured in M5. */
+.editor-legacy-workflow {
+  display: grid;
+  grid-template-rows: 48px 160px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-modal-layer {
+  position: absolute;
+  z-index: var(--z-dialog);
+  inset: 0;
+  pointer-events: none;
+}
+
+.editor-modal-layer > * {
+  pointer-events: auto;
+}
+
+.editor-overlay-toggle-bar {
+  display: none;
+}
+
+/* Legacy shared panel rules. Scheduled for M3/M4 migration. */
+.panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-panel-border);
+}
+
+.panel-title {
+  margin: 0;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.panel-content {
+  min-height: 0;
+  overflow: auto;
+}
+
+.empty-state {
+  display: grid;
+  min-height: 100%;
+  place-content: center;
+  gap: 0.375rem;
+  padding: 1rem;
+  color: var(--color-panel-muted);
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.empty-state p:first-child {
+  color: #475569;
+  font-weight: 600;
+}
+
+.editor-import-input {
+  display: none;
+}
+
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .editor-workspace {
+    grid-template-columns: 200px minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1099px) {
+  .editor-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-canvas-stage {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .editor-level-area,
+  .editor-property-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: min(280px, calc(100% - var(--space-6)));
+    transition-property: transform;
+    transition-duration: var(--motion-panel);
+    transition-timing-function: var(--ease-standard);
+  }
+
+  .editor-level-area {
+    left: 0;
+    transform: translateX(calc(-100% - var(--space-3)));
+  }
+
+  .editor-property-area {
+    right: 0;
+    transform: translateX(calc(100% + var(--space-3)));
+  }
+
+  .editor-level-area.is-overlay-open,
+  .editor-property-area.is-overlay-open {
+    transform: translateX(0);
+  }
+
+  .editor-overlay-toggle-bar {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    left: var(--space-2);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .editor-overlay-toggle-bar button {
+    padding: var(--space-1) var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-metadata);
+    background: var(--glass-g2-background);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    box-shadow: var(--shadow-floating);
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 899px) {
+  .editor-view {
+    grid-template-rows: 48px minmax(0, 1fr) 208px 32px;
+  }
+}

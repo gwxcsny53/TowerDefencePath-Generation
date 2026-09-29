@@ -9,6 +9,7 @@ import NewLevelDialog from '@/ui/components/NewLevelDialog.vue';
 import PropertyPanel from '@/ui/components/PropertyPanel.vue';
 import RoutePreviewOverlay from '@/ui/components/RoutePreviewOverlay.vue';
 import ResizeLevelDialog from '@/ui/components/ResizeLevelDialog.vue';
+import StatusBar from '@/ui/components/StatusBar.vue';
 import ToolPalette from '@/ui/components/ToolPalette.vue';
 import TopToolbar from '@/ui/components/TopToolbar.vue';
 import ValidationPanel from '@/ui/components/ValidationPanel.vue';
@@ -42,6 +43,8 @@ const isNewLevelDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
 const isExportDialogOpen = ref(false);
 const isResizeDialogOpen = ref(false);
+const isLevelOverlayOpen = ref(false);
+const isInspectorOverlayOpen = ref(false);
 const isAnyEditorDialogOpen = computed(
   () =>
     isNewLevelDialogOpen.value ||
@@ -53,6 +56,15 @@ const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
 const importError = ref<string | null>(null);
 const selectedPosition = computed(() => selection.value?.position ?? null);
+const currentLevelLabel = computed(
+  () => `Chapter ${activeLevelAddress.value.chapter} / Stage ${activeLevelAddress.value.stage}`,
+);
+const validationErrorCount = computed(
+  () => currentValidationIssues.value.filter((issue) => issue.severity === 'error').length,
+);
+const validationWarningCount = computed(
+  () => currentValidationIssues.value.filter((issue) => issue.severity === 'warning').length,
+);
 const routePreviewPlaybackSource = computed(() => {
   const run = routePreviewRun.value;
   if (run === null) return null;
@@ -76,6 +88,14 @@ const routePreviewRenderState = computed(() => {
 function closeRoutePreview(): void {
   stopRoutePreview();
   editorStore.closeRoutePreview();
+}
+function toggleLevelOverlay(): void {
+  isLevelOverlayOpen.value = !isLevelOverlayOpen.value;
+  if (isLevelOverlayOpen.value) isInspectorOverlayOpen.value = false;
+}
+function toggleInspectorOverlay(): void {
+  isInspectorOverlayOpen.value = !isInspectorOverlayOpen.value;
+  if (isInspectorOverlayOpen.value) isLevelOverlayOpen.value = false;
 }
 const newLevelDefaults = computed<NewLevelSpec>(() => ({
   chapter: activeLevelAddress.value.chapter,
@@ -191,6 +211,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :test-route-title="routePreviewDisabledReason"
       :persistence-status="persistenceStatus"
       :persistence-error="persistenceError"
+      :current-level-label="currentLevelLabel"
       @undo="editorStore.undo"
       @redo="editorStore.redo"
       @validate="editorStore.runValidation"
@@ -200,7 +221,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
     />
 
     <main class="editor-workspace">
-      <aside class="editor-level-area" aria-label="关卡列表">
+      <!-- M2 compatibility surface: M4 replaces the light legacy LevelTree content. -->
+      <aside
+        class="editor-level-area editor-legacy-panel-frame"
+        :class="{ 'is-overlay-open': isLevelOverlayOpen }"
+        aria-label="关卡列表"
+      >
         <LevelTree
           :project="project"
           :active-level-address="activeLevelAddress"
@@ -212,7 +238,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         />
       </aside>
 
-      <section class="editor-map-area" aria-label="地图编辑区域">
+      <section class="editor-canvas-stage" aria-label="地图编辑区域">
         <MapCanvas
           :level="workingLevel"
           :selected-position="selectedPosition"
@@ -223,19 +249,39 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           @cell-pointer-move="editorStore.continueStroke"
           @cell-pointer-up="editorStore.endStroke"
         />
-        <RoutePreviewOverlay
-          v-if="routePreviewRun !== null && routePreviewFrame !== null"
-          :result="routePreviewRun.result"
-          :frame="routePreviewFrame"
-          :playback-status="playbackStatus"
-          :move-seconds-per-cell="routePreviewRun.moveSecondsPerCell"
-          @stop="stopRoutePreview"
-          @replay="editorStore.startRoutePreview"
-          @close="closeRoutePreview"
-        />
+        <div class="editor-floating-ui-layer">
+          <div class="editor-overlay-toggle-bar" aria-label="编辑器面板">
+            <button type="button" :aria-pressed="isLevelOverlayOpen" @click="toggleLevelOverlay">
+              关卡
+            </button>
+            <button
+              type="button"
+              :aria-pressed="isInspectorOverlayOpen"
+              @click="toggleInspectorOverlay"
+            >
+              属性
+            </button>
+          </div>
+          <RoutePreviewOverlay
+            v-if="routePreviewRun !== null && routePreviewFrame !== null"
+            :result="routePreviewRun.result"
+            :frame="routePreviewFrame"
+            :playback-status="playbackStatus"
+            :move-seconds-per-cell="routePreviewRun.moveSecondsPerCell"
+            @stop="stopRoutePreview"
+            @replay="editorStore.startRoutePreview"
+            @close="closeRoutePreview"
+          />
+        </div>
+        <div class="editor-drawer-layer" aria-hidden="true"></div>
       </section>
 
-      <aside class="editor-property-area" aria-label="属性面板">
+      <!-- M2 compatibility surface: M4 replaces the light legacy PropertyPanel content. -->
+      <aside
+        class="editor-property-area editor-legacy-panel-frame"
+        :class="{ 'is-overlay-open': isInspectorOverlayOpen }"
+        aria-label="属性面板"
+      >
         <PropertyPanel
           :level="workingLevel"
           :selection="selection"
@@ -250,25 +296,24 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       </aside>
     </main>
 
-    <ToolPalette :active-tool="activeTool" @select-tool="editorStore.setActiveTool" />
-    <ValidationPanel
-      :status="validationStatus"
-      :issues="currentValidationIssues"
-      :focused-issue="focusedValidationIssue"
-      @focus-issue="editorStore.focusValidationIssue"
-    />
-    <NewLevelDialog
-      :open="isNewLevelDialogOpen"
-      :project="project"
-      :defaults="newLevelDefaults"
-      @create="createLevel"
-      @cancel="isNewLevelDialogOpen = false"
-    />
-    <ResizeLevelDialog
-      :open="isResizeDialogOpen"
-      :level="workingLevel"
-      @resize="resizeCurrentLevel"
-      @cancel="isResizeDialogOpen = false"
+    <!-- Temporary M2 compatibility host. Removed/restructured in M5. -->
+    <section class="editor-legacy-workflow" aria-label="传统编辑器工作流">
+      <ToolPalette :active-tool="activeTool" @select-tool="editorStore.setActiveTool" />
+      <ValidationPanel
+        :status="validationStatus"
+        :issues="currentValidationIssues"
+        :focused-issue="focusedValidationIssue"
+        @focus-issue="editorStore.focusValidationIssue"
+      />
+    </section>
+    <StatusBar
+      :active-tool="activeTool"
+      :cols="workingLevel.grid.cols"
+      :rows="workingLevel.grid.rows"
+      :persistence-status="persistenceStatus"
+      :validation-status="validationStatus"
+      :error-count="validationErrorCount"
+      :warning-count="validationWarningCount"
     />
     <input
       ref="importInput"
@@ -277,122 +322,37 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       accept=".json,application/json"
       @change="handleImportFile"
     />
-    <ImportDialog
-      :open="isImportDialogOpen"
-      :project="project"
-      :payload="pendingImport"
-      :error-message="importError"
-      @close="closeImportDialog"
-      @import-level="importLevel"
-      @replace-level="replaceImportedLevel"
-      @copy-level="copyImportedLevel"
-      @replace-project="replaceProjectFromBackup"
-    />
-    <ExportDialog
-      :open="isExportDialogOpen"
-      @close="isExportDialogOpen = false"
-      @export-game-config="exportGameStageConfig"
-      @export-project="exportProjectBackup"
-    />
+    <div class="editor-modal-layer">
+      <NewLevelDialog
+        :open="isNewLevelDialogOpen"
+        :project="project"
+        :defaults="newLevelDefaults"
+        @create="createLevel"
+        @cancel="isNewLevelDialogOpen = false"
+      />
+      <ResizeLevelDialog
+        :open="isResizeDialogOpen"
+        :level="workingLevel"
+        @resize="resizeCurrentLevel"
+        @cancel="isResizeDialogOpen = false"
+      />
+      <ImportDialog
+        :open="isImportDialogOpen"
+        :project="project"
+        :payload="pendingImport"
+        :error-message="importError"
+        @close="closeImportDialog"
+        @import-level="importLevel"
+        @replace-level="replaceImportedLevel"
+        @copy-level="copyImportedLevel"
+        @replace-project="replaceProjectFromBackup"
+      />
+      <ExportDialog
+        :open="isExportDialogOpen"
+        @close="isExportDialogOpen = false"
+        @export-game-config="exportGameStageConfig"
+        @export-project="exportProjectBackup"
+      />
+    </div>
   </section>
 </template>
-
-<style>
-.editor-view {
-  display: grid;
-  grid-template-rows: 52px minmax(0, 1fr) 48px 160px;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--color-app-background);
-}
-
-.editor-workspace {
-  display: grid;
-  grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(340px, 380px);
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.editor-level-area,
-.editor-property-area {
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--color-panel-background);
-}
-
-.editor-level-area {
-  border-right: 1px solid var(--color-panel-border);
-}
-
-.editor-map-area {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.editor-property-area {
-  border-left: 1px solid var(--color-panel-border);
-}
-
-.panel {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 42px;
-  padding: 0.625rem 0.75rem;
-  border-bottom: 1px solid var(--color-panel-border);
-}
-
-.panel-title {
-  margin: 0;
-  color: #334155;
-  font-size: 0.875rem;
-  font-weight: 650;
-}
-
-.panel-content {
-  min-height: 0;
-  overflow: auto;
-}
-
-.empty-state {
-  display: grid;
-  min-height: 100%;
-  place-content: center;
-  gap: 0.375rem;
-  padding: 1rem;
-  color: var(--color-panel-muted);
-  text-align: center;
-}
-
-.empty-state p {
-  margin: 0;
-}
-
-.empty-state p:first-child {
-  color: #475569;
-  font-weight: 600;
-}
-
-.editor-import-input {
-  display: none;
-}
-
-@media (max-width: 1000px) {
-  .editor-workspace {
-    grid-template-columns: minmax(160px, 200px) minmax(0, 1fr) minmax(280px, 320px);
-  }
-}
-</style>

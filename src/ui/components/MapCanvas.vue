@@ -121,7 +121,8 @@ watch(() => props.routePreview, renderMap, { deep: true });
   height: 100%;
   overflow: hidden;
   background: #e2e8f0;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-panel-border);
+  border-radius: var(--radius-panel);
 }
 
 canvas {
@@ -129,6 +130,7 @@ canvas {
   width: 100%;
   height: 100%;
   border: 0;
+  border-radius: inherit;
   background: #e2e8f0;
 }
 

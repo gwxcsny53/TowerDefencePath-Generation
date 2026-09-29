@@ -2,6 +2,7 @@
 @import './ui/styles/foundation.css';
 @import './ui/styles/glass.css';
 @import './ui/styles/motion.css';
+@import './ui/styles/editor-shell.css';
 
 :root {
   /*

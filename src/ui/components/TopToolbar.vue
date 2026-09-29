@@ -6,6 +6,7 @@ defineProps<{
   testRouteTitle: string;
   persistenceStatus: 'loading' | 'saved' | 'saving' | 'error';
   persistenceError: string | null;
+  currentLevelLabel?: string;
 }>();
 const emit = defineEmits<{
   undo: [];
@@ -19,7 +20,10 @@ const emit = defineEmits<{
 
 <template>
   <header class="top-toolbar">
-    <h1 class="top-toolbar-title">Tower Defense Path Editor</h1>
+    <div class="top-toolbar-identity">
+      <h1 class="top-toolbar-title">TDPE</h1>
+      <span v-if="currentLevelLabel" class="top-toolbar-level">{{ currentLevelLabel }}</span>
+    </div>
 
     <nav class="top-toolbar-actions" aria-label="编辑器操作">
       <span
@@ -69,11 +73,22 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
   min-width: 0;
-  padding: 0 1rem;
-  color: var(--color-toolbar-text);
-  background: var(--color-toolbar-background);
+  height: 48px;
+  padding: 0 var(--space-3);
+  color: var(--text-primary);
+  background: var(--glass-g2-background);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-floating);
+  box-shadow: var(--shadow-floating);
+}
+
+.top-toolbar-identity {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .top-toolbar-title {
@@ -81,6 +96,14 @@ const emit = defineEmits<{
   overflow: hidden;
   font-size: 1rem;
   font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-toolbar-level {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--font-size-metadata);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
