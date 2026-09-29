@@ -11,6 +11,8 @@ import {
   formatPreviewSeconds,
   getRoutePreviewTiming,
 } from '@/ui/routePreview/RoutePreviewPlayback';
+import UiButton from '@/ui/components/base/UiButton.vue';
+import UiProgressBar from '@/ui/components/base/UiProgressBar.vue';
 
 const props = defineProps<{
   result: RouteSimulationResult;
@@ -35,83 +37,56 @@ const timing = computed(() =>
 
 <template>
   <section class="route-preview-overlay" aria-label="路线测试结果">
-    <h2>路线测试</h2>
-    <p class="route-preview-spawn">出生点：{{ result.spawnId }}</p>
-    <p>每格耗时：{{ formatPreviewSeconds(moveSecondsPerCell) }}</p>
-    <p>
-      时间：{{ formatPreviewSeconds(timing.elapsedSeconds) }} /
-      {{ formatPreviewSeconds(timing.totalSeconds) }}
-    </p>
-    <p v-if="playbackStatus === 'playing'" class="route-preview-progress">
-      进度：{{ progress }} / {{ result.path.length }}
-    </p>
-    <p class="route-preview-status">状态：{{ playbackTitle }}</p>
-    <p v-if="playbackStatus !== 'playing'" class="route-preview-description">
+    <h2 class="route-preview-overlay__title">路线测试</h2>
+    <dl class="route-preview-overlay__details">
+      <div>
+        <dt>出生点</dt>
+        <dd>{{ result.spawnId }}</dd>
+      </div>
+      <div>
+        <dt>目标</dt>
+        <dd>{{ result.endId ?? '—' }}</dd>
+      </div>
+      <div>
+        <dt>状态</dt>
+        <dd class="route-preview-overlay__status">{{ playbackTitle }}</dd>
+      </div>
+      <div>
+        <dt>每格耗时</dt>
+        <dd>{{ formatPreviewSeconds(moveSecondsPerCell) }}</dd>
+      </div>
+      <div>
+        <dt>时间</dt>
+        <dd>
+          {{ formatPreviewSeconds(timing.elapsedSeconds) }} /
+          {{ formatPreviewSeconds(timing.totalSeconds) }}
+        </dd>
+      </div>
+      <div v-if="playbackStatus === 'playing'">
+        <dt>进度</dt>
+        <dd>{{ progress }} / {{ result.path.length }}</dd>
+      </div>
+      <div v-else>
+        <dt>步数</dt>
+        <dd>{{ Math.max(0, result.path.length - 1) }}</dd>
+      </div>
+    </dl>
+    <UiProgressBar :value="timing.elapsedSeconds" :max="timing.totalSeconds" />
+    <p v-if="playbackStatus !== 'playing'" class="route-preview-overlay__description">
       {{
         playbackStatus === 'stopped' ? `模拟结果：${presentation.title}` : presentation.description
       }}
     </p>
-    <p v-if="result.endId !== undefined" class="route-preview-end">
-      {{ result.spawnId }} → {{ result.endId }}
-    </p>
-    <p v-if="playbackStatus !== 'playing'" class="route-preview-steps">
-      步数：{{ Math.max(0, result.path.length - 1) }}
-    </p>
-    <div class="route-preview-actions">
-      <button v-if="playbackStatus === 'playing'" type="button" @click="emit('stop')">停止</button>
-      <button v-else type="button" @click="emit('replay')">重新测试</button>
-      <button type="button" @click="emit('close')">关闭</button>
+    <div class="route-preview-overlay__actions">
+      <UiButton
+        v-if="playbackStatus === 'playing'"
+        variant="secondary"
+        size="sm"
+        @click="emit('stop')"
+        >停止</UiButton
+      >
+      <UiButton v-else variant="primary" size="sm" @click="emit('replay')">重新测试</UiButton>
+      <UiButton variant="ghost" size="sm" @click="emit('close')">关闭</UiButton>
     </div>
   </section>
 </template>
-
-<style scoped>
-.route-preview-overlay {
-  position: absolute;
-  z-index: 1;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: min(16rem, calc(100% - 1.5rem));
-  padding: 0.75rem;
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #67e8f9;
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
-}
-
-.route-preview-overlay h2,
-.route-preview-overlay p {
-  margin: 0;
-}
-
-.route-preview-overlay h2 {
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.route-preview-overlay p {
-  margin-top: 0.25rem;
-  color: #475569;
-  font-size: 0.75rem;
-}
-
-.route-preview-overlay .route-preview-status {
-  color: #0e7490;
-  font-weight: 650;
-}
-
-.route-preview-actions {
-  display: flex;
-  gap: 0.375rem;
-  margin-top: 0.75rem;
-}
-
-.route-preview-actions button {
-  padding: 0.25rem 0.5rem;
-  color: #155e75;
-  background: #ecfeff;
-  border: 1px solid #67e8f9;
-  border-radius: 0.25rem;
-}
-</style>

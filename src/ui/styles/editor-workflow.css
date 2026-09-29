@@ -1,0 +1,261 @@
+.tool-dock {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  height: 44px;
+  padding: var(--space-1);
+  overflow-x: auto;
+  background: var(--glass-g2-background);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-liquid);
+  box-shadow: var(--shadow-floating);
+  -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  transform: translateX(-50%);
+}
+
+.tool-dock--drawer-open {
+  bottom: calc(var(--validation-drawer-height) + var(--space-3));
+}
+
+.tool-dock .ui-icon-button {
+  flex: 0 0 auto;
+}
+
+.tool-dock .ui-icon-button.is-active {
+  color: var(--text-primary);
+  background: var(--glass-g3-background);
+  border-color: var(--glass-g3-border);
+  box-shadow: var(--shadow-liquid);
+}
+
+.validation-drawer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: var(--validation-drawer-height);
+  min-height: 0;
+  color: var(--text-secondary);
+  background: var(--glass-g1-background);
+  border-top: 1px solid var(--border-default);
+  box-shadow: var(--shadow-panel);
+  -webkit-backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
+  backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
+}
+
+.validation-drawer__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.validation-drawer__title,
+.validation-drawer__count,
+.validation-drawer__empty p {
+  margin: 0;
+}
+
+.validation-drawer__title {
+  color: var(--text-primary);
+  font-size: var(--font-size-panel-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.validation-drawer__count {
+  margin-top: var(--space-1);
+  color: var(--status-danger);
+  font-size: var(--font-size-metadata);
+}
+
+.validation-drawer__count--warning {
+  color: var(--status-warning);
+}
+
+.validation-drawer__content {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.validation-drawer__empty {
+  display: grid;
+  min-height: 100%;
+  align-content: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.validation-drawer__empty p:first-child {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.validation-issue-list {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.validation-issue {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-secondary);
+  text-align: left;
+  background: var(--control-background);
+  border: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--status-danger);
+  border-radius: var(--radius-control);
+}
+
+button.validation-issue {
+  cursor: pointer;
+}
+
+button.validation-issue:hover {
+  background: var(--control-background-hover);
+}
+
+button.validation-issue:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.validation-issue--warning {
+  border-left-color: var(--status-warning);
+}
+
+.validation-issue--focused {
+  background: var(--surface-active);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+.validation-issue__severity {
+  grid-row: span 2;
+  color: var(--status-danger);
+  font-size: var(--font-size-metadata);
+  font-weight: var(--font-weight-semibold);
+}
+
+.validation-issue--warning .validation-issue__severity {
+  color: var(--status-warning);
+}
+
+.validation-issue__title {
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.validation-issue__description,
+.validation-issue__meta,
+.validation-issue__code {
+  grid-column: 2;
+  font-size: var(--font-size-metadata);
+}
+
+.validation-issue__code {
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.route-preview-overlay {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  width: min(260px, calc(100% - 32px));
+  padding: var(--space-4);
+  color: var(--text-secondary);
+  background: var(--glass-g2-background);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-floating);
+  box-shadow: var(--shadow-floating);
+  -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+}
+
+.route-preview-overlay__title,
+.route-preview-overlay__description,
+.route-preview-overlay__details {
+  margin: 0;
+}
+
+.route-preview-overlay__title {
+  color: var(--text-primary);
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-section);
+}
+
+.route-preview-overlay__details {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.route-preview-overlay__details > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.route-preview-overlay__details dt {
+  color: var(--text-muted);
+}
+
+.route-preview-overlay__details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.route-preview-overlay__status {
+  color: var(--accent-cyan);
+}
+
+.route-preview-overlay__description {
+  font-size: var(--font-size-metadata);
+}
+
+.route-preview-overlay__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ui-progress-bar {
+  height: 3px;
+  overflow: hidden;
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.ui-progress-bar__fill {
+  height: 100%;
+  background: var(--accent-cyan);
+  border-radius: inherit;
+}
+
+@media (max-width: 1099px) {
+  .route-preview-overlay {
+    top: 48px;
+  }
+}

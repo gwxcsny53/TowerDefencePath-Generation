@@ -660,7 +660,7 @@ M5 完成后，1440×900 的主要结构应与 Design System 基线一致，不�
 ## 实现步骤
 
 1. 将现有 ToolPalette 置入 `floating-ui-layer`，改为约 300×44 的 ToolDock。
-2. 工具项使用 36×36 IconButton，保留 aria-label、tooltip 和快捷键 1–6。
+2. 工具项使用 36×36 IconButton，保留 aria-label 与快捷键 1–6；不使用 Hover Tooltip 或 native title。
 3. Active Tool 先使用静态 G3 soft indicator，不在 M5 实现 stretch/spring。
 4. StatusBar 右侧显示 Validation 摘要；点击后切换 Validation Drawer。
 5. Validation not-run / stale / passed 默认不占大空间；failed/warning 通过摘要提示。
@@ -729,7 +729,7 @@ M5 完成后，1440×900 的主要结构应与 Design System 基线一致，不�
 
 ## 目标状态
 
-在 M1–M5 已稳定的布局和控件之上增加有意义的 Motion：Tool active lens、Level active indicator、Toggle/Slider thumb、Panel/Drawer/Dialog、Tooltip/Popover 和 Route Preview 的状态过渡。
+在 M1–M5 已稳定的布局和控件之上增加有意义的 Motion：Tool active lens、Level active indicator、Toggle/Slider thumb、Panel/Drawer/Dialog、Popover 和 Route Preview 的状态过渡。
 
 M6 只实现运动语言，不实现 Optical Refraction。
 
@@ -737,7 +737,7 @@ M6 只实现运动语言，不实现 Optical Refraction。
 
 - 当前 UI 几乎没有统一动画。
 - Active 状态直接切换。
-- Panel、Drawer、Dialog、Tooltip 和 Preview 缺少一致的进入/退出节奏。
+- Panel、Drawer、Dialog 和 Preview 缺少一致的进入/退出节奏。
 - 没有系统化 Reduced Motion 验收。
 
 ## 涉及文件
@@ -748,7 +748,6 @@ M6 只实现运动语言，不实现 Optical Refraction。
 - `src/ui/components/ValidationPanel.vue`
 - `src/ui/components/RoutePreviewOverlay.vue`
 - `src/ui/components/base/UiDialog.vue`
-- `src/ui/components/base/UiTooltip.vue`
 - `src/ui/components/base/UiPopover.vue`
 - `src/ui/views/EditorView.vue`，仅限 collapse/drawer presentation state
 
@@ -769,11 +768,11 @@ M6 只实现运动语言，不实现 Optical Refraction。
 
 ## 实现步骤
 
-1. 为 Hover/Press、Input/Tooltip、Panel/Drawer、Liquid、Dialog 分配统一 duration/easing。
+1. 为 Hover/Press、Input/Popover、Panel/Drawer、Liquid、Dialog 分配统一 duration/easing。
 2. Tool active indicator 实现 Stretch → Move → Small Overshoot → Settle；按钮本身保持真实可点击元素。
 3. Level active indicator 纵向滑动，但 DOM 顺序与焦点顺序不改变。
 4. Drawer、Dialog、Route Preview 使用 transform + opacity；退出短于进入。
-5. Tooltip/Popover 使用短距离位移与 fade。
+5. Popover 使用短距离位移与 fade。
 6. Toggle/Slider 如已投入使用，再添加 thumb motion；未使用的组件不为展示而强行加入页面。
 7. Panel collapse 使用 220ms，并保证 Canvas 只在布局稳定点重新测量。
 8. Reduced Motion 下禁用 stretch/overshoot，只保留必要 fade 和状态切换。

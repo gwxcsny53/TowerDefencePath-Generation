@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import LevelTree from '@/ui/components/LevelTree.vue';
 import ExportDialog from '@/ui/components/ExportDialog.vue';
@@ -46,6 +46,7 @@ const isResizeDialogOpen = ref(false);
 const isDeleteLevelDialogOpen = ref(false);
 const isLevelOverlayOpen = ref(false);
 const isInspectorOverlayOpen = ref(false);
+const isValidationDrawerOpen = ref(false);
 const isAnyEditorDialogOpen = computed(
   () =>
     isNewLevelDialogOpen.value ||
@@ -54,6 +55,9 @@ const isAnyEditorDialogOpen = computed(
     isExportDialogOpen.value ||
     isDeleteLevelDialogOpen.value,
 );
+watch(isAnyEditorDialogOpen, (open) => {
+  if (open) isValidationDrawerOpen.value = false;
+});
 const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
 const importError = ref<string | null>(null);
@@ -182,6 +186,10 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 function handleKeyDown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && isValidationDrawerOpen.value && !isAnyEditorDialogOpen.value) {
+    isValidationDrawerOpen.value = false;
+    return;
+  }
   if (isEditableTarget(event.target)) return;
   if (
     !isAnyEditorDialogOpen.value &&
@@ -271,6 +279,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
           @cell-pointer-up="editorStore.endStroke"
         />
         <div class="editor-floating-ui-layer">
+          <ToolPalette
+            :class="{ 'tool-dock--drawer-open': isValidationDrawerOpen }"
+            :active-tool="activeTool"
+            @select-tool="editorStore.setActiveTool"
+          />
           <div class="editor-overlay-toggle-bar" aria-label="编辑器面板">
             <button
               v-if="!isLevelOverlayOpen"
@@ -300,7 +313,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
             @close="closeRoutePreview"
           />
         </div>
-        <div class="editor-drawer-layer" aria-hidden="true"></div>
+        <div class="editor-drawer-layer">
+          <ValidationPanel
+            v-show="isValidationDrawerOpen"
+            :status="validationStatus"
+            :issues="currentValidationIssues"
+            :focused-issue="focusedValidationIssue"
+            @focus-issue="editorStore.focusValidationIssue"
+            @close="isValidationDrawerOpen = false"
+          />
+        </div>
       </section>
 
       <aside
@@ -335,16 +357,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       </aside>
     </main>
 
-    <!-- Temporary M2 compatibility host. Removed/restructured in M5. -->
-    <section class="editor-legacy-workflow" aria-label="传统编辑器工作流">
-      <ToolPalette :active-tool="activeTool" @select-tool="editorStore.setActiveTool" />
-      <ValidationPanel
-        :status="validationStatus"
-        :issues="currentValidationIssues"
-        :focused-issue="focusedValidationIssue"
-        @focus-issue="editorStore.focusValidationIssue"
-      />
-    </section>
     <StatusBar
       :active-tool="activeTool"
       :cols="workingLevel.grid.cols"
@@ -353,6 +365,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
       :validation-status="validationStatus"
       :error-count="validationErrorCount"
       :warning-count="validationWarningCount"
+      :validation-open="isValidationDrawerOpen"
+      @toggle-validation="isValidationDrawerOpen = !isValidationDrawerOpen"
     />
     <input
       ref="importInput"

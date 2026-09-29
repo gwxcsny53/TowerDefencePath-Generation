@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 
 import type { EditorTool } from '@/editor';
+import UiButton from '@/ui/components/base/UiButton.vue';
 
 const props = defineProps<{
   activeTool: EditorTool;
@@ -11,7 +12,9 @@ const props = defineProps<{
   validationStatus: 'not-run' | 'stale' | 'passed' | 'failed';
   errorCount: number;
   warningCount: number;
+  validationOpen: boolean;
 }>();
+const emit = defineEmits<{ 'toggle-validation': [] }>();
 
 const toolLabels: Record<EditorTool, string> = {
   select: '选择',
@@ -47,9 +50,17 @@ const validationLabel = computed(() => {
     <span class="status-bar-item" :class="`status-bar-persistence--${persistenceStatus}`">
       {{ persistenceLabel }}
     </span>
-    <span class="status-bar-item" :class="`status-bar-validation--${validationStatus}`">
+    <UiButton
+      class="status-bar-validation"
+      :class="`status-bar-validation--${validationStatus}`"
+      variant="ghost"
+      size="sm"
+      :aria-expanded="validationOpen"
+      aria-controls="validation-drawer"
+      @click="emit('toggle-validation')"
+    >
       {{ validationLabel }}
-    </span>
+    </UiButton>
   </footer>
 </template>
 
@@ -81,6 +92,15 @@ const validationLabel = computed(() => {
 
 .status-bar-spacer {
   flex: 1 1 auto;
+}
+
+.status-bar-validation {
+  max-width: 50%;
+  padding: 0 var(--space-2);
+}
+
+.status-bar-validation:hover:not(:disabled) {
+  color: var(--text-primary);
 }
 
 .status-bar-persistence--error,

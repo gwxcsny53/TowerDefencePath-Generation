@@ -5,6 +5,7 @@
 @import './ui/styles/controls.css';
 @import './ui/styles/editor-shell.css';
 @import './ui/styles/editor-panels.css';
+@import './ui/styles/editor-workflow.css';
 
 :root {
   /*

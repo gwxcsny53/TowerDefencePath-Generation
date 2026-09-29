@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { Castle, Eraser, Flag, MapPin, MousePointer2, Route } from 'lucide-vue-next';
 import { EDITOR_TOOLS, getEditorToolShortcutLabel } from '@/editor';
 import type { EditorTool } from '@/editor';
+import UiIconButton from '@/ui/components/base/UiIconButton.vue';
 
 defineProps<{ activeTool: EditorTool }>();
 const emit = defineEmits<{ 'select-tool': [tool: EditorTool] }>();
@@ -12,74 +14,28 @@ const toolLabels: Record<EditorTool, string> = {
   tower: '塔位',
   eraser: '橡皮擦',
 };
+const toolIcons = {
+  select: MousePointer2,
+  path: Route,
+  spawn: MapPin,
+  end: Flag,
+  tower: Castle,
+  eraser: Eraser,
+};
 </script>
 
 <template>
-  <section class="tool-palette" aria-label="编辑工具">
-    <span class="tool-palette-label">工具</span>
-    <div class="tool-palette-actions">
-      <button
-        v-for="tool in EDITOR_TOOLS"
-        :key="tool"
-        :class="{ 'is-active': activeTool === tool }"
-        :aria-pressed="activeTool === tool"
-        :title="`${toolLabels[tool]}（快捷键 ${getEditorToolShortcutLabel(tool)}）`"
-        type="button"
-        @click="emit('select-tool', tool)"
-      >
-        <span>{{ toolLabels[tool] }}</span>
-        <kbd>{{ getEditorToolShortcutLabel(tool) }}</kbd>
-      </button>
-    </div>
-  </section>
+  <nav class="tool-dock" aria-label="编辑工具">
+    <UiIconButton
+      v-for="tool in EDITOR_TOOLS"
+      :key="tool"
+      size="tool"
+      :class="{ 'is-active': activeTool === tool }"
+      :label="`${toolLabels[tool]}，快捷键 ${getEditorToolShortcutLabel(tool)}`"
+      :aria-pressed="activeTool === tool"
+      @click="emit('select-tool', tool)"
+    >
+      <component :is="toolIcons[tool]" :size="18" aria-hidden="true" />
+    </UiIconButton>
+  </nav>
 </template>
-
-<style scoped>
-.tool-palette {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  padding: 0 1rem;
-  overflow: hidden;
-  background: var(--color-panel-background);
-  border-top: 1px solid var(--color-panel-border);
-  border-bottom: 1px solid var(--color-panel-border);
-}
-
-.tool-palette-label {
-  color: #475569;
-  font-size: 0.875rem;
-  font-weight: 650;
-}
-
-.tool-palette-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  min-width: 0;
-  overflow: auto hidden;
-}
-
-.tool-palette-actions button {
-  flex: 0 0 auto;
-  padding: 0.375rem 0.625rem;
-  color: #64748b;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.25rem;
-}
-
-.tool-palette-actions button kbd {
-  margin-left: 0.375rem;
-  color: inherit;
-  font-size: 0.75rem;
-  opacity: 0.75;
-}
-
-.tool-palette-actions button.is-active {
-  color: #ffffff;
-  background: #2563eb;
-  border-color: #1d4ed8;
-}
-</style>
