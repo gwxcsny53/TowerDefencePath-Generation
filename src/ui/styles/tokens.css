@@ -33,6 +33,15 @@
   --status-danger: #ef4444;
   --status-info: #22d3ee;
 
+  /* Controls */
+  --control-height-sm: 28px;
+  --control-height-md: 32px;
+  --control-height-lg: 36px;
+  --control-background: rgba(255, 255, 255, 0.04);
+  --control-background-hover: rgba(255, 255, 255, 0.08);
+  --danger-soft: rgba(239, 68, 68, 0.1);
+  --modal-backdrop: rgba(4, 8, 13, 0.55);
+
   /* Spacing */
   --space-1: 4px;
   --space-2: 8px;

@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import { ListChecks, MoreHorizontal, Play, Redo2, Undo2 } from 'lucide-vue-next';
+
+import UiButton from '@/ui/components/base/UiButton.vue';
+import UiIconButton from '@/ui/components/base/UiIconButton.vue';
+import UiPopover from '@/ui/components/base/UiPopover.vue';
+import UiTooltip from '@/ui/components/base/UiTooltip.vue';
+
 defineProps<{
   canUndo: boolean;
   canRedo: boolean;
@@ -16,14 +23,49 @@ const emit = defineEmits<{
   import: [];
   export: [];
 }>();
+
+function runMoreAction(close: () => void, action: 'import' | 'export'): void {
+  close();
+  if (action === 'import') emit('import');
+  else emit('export');
+}
 </script>
 
 <template>
-  <header class="top-toolbar">
+  <header class="top-toolbar tdpe-glass-g2">
     <div class="top-toolbar-identity">
       <h1 class="top-toolbar-title">TDPE</h1>
       <span v-if="currentLevelLabel" class="top-toolbar-level">{{ currentLevelLabel }}</span>
     </div>
+
+    <nav class="top-toolbar-history" aria-label="历史操作">
+      <UiTooltip text="撤销" shortcut="Ctrl/Cmd + Z">
+        <template #default="{ tooltipId }">
+          <UiIconButton
+            label="撤销"
+            :aria-describedby="tooltipId"
+            size="compact"
+            :disabled="!canUndo"
+            @click="emit('undo')"
+          >
+            <Undo2 :size="16" aria-hidden="true" />
+          </UiIconButton>
+        </template>
+      </UiTooltip>
+      <UiTooltip text="重做" shortcut="Ctrl/Cmd + Y">
+        <template #default="{ tooltipId }">
+          <UiIconButton
+            label="重做"
+            :aria-describedby="tooltipId"
+            size="compact"
+            :disabled="!canRedo"
+            @click="emit('redo')"
+          >
+            <Redo2 :size="16" aria-hidden="true" />
+          </UiIconButton>
+        </template>
+      </UiTooltip>
+    </nav>
 
     <nav class="top-toolbar-actions" aria-label="编辑器操作">
       <span
@@ -41,47 +83,77 @@ const emit = defineEmits<{
                 : '已保存'
         }}
       </span>
-      <button type="button" disabled>项目</button>
-      <button type="button" @click="emit('import')">导入</button>
-      <button type="button" @click="emit('export')">导出</button>
-      <button type="button" :disabled="!canUndo" title="撤销（Ctrl/Cmd+Z）" @click="emit('undo')">
-        撤销
-      </button>
-      <button
-        type="button"
-        :disabled="!canRedo"
-        title="重做（Ctrl/Cmd+Y 或 Ctrl/Cmd+Shift+Z）"
-        @click="emit('redo')"
-      >
-        重做
-      </button>
-      <button type="button" @click="emit('validate')">校验</button>
-      <button
-        type="button"
-        :disabled="!canTestRoute"
-        :title="testRouteTitle"
-        @click="emit('test-route')"
-      >
-        测试路线
-      </button>
+      <UiButton variant="secondary" @click="emit('validate')">
+        <ListChecks :size="16" aria-hidden="true" />
+        校验
+      </UiButton>
+      <UiTooltip :text="testRouteTitle">
+        <template #default="{ tooltipId }">
+          <UiButton
+            variant="primary"
+            :aria-describedby="tooltipId"
+            :disabled="!canTestRoute"
+            @click="emit('test-route')"
+          >
+            <Play :size="18" aria-hidden="true" />
+            测试路线
+          </UiButton>
+        </template>
+      </UiTooltip>
+      <UiPopover>
+        <template #trigger="{ open, toggle }">
+          <UiTooltip text="更多操作">
+            <template #default="{ tooltipId }">
+              <UiIconButton
+                label="更多操作"
+                :aria-describedby="tooltipId"
+                size="normal"
+                aria-haspopup="menu"
+                :aria-expanded="open"
+                @click="toggle"
+              >
+                <MoreHorizontal :size="18" aria-hidden="true" />
+              </UiIconButton>
+            </template>
+          </UiTooltip>
+        </template>
+        <template #default="{ close }">
+          <div class="top-toolbar-more-menu" role="menu" aria-label="更多操作">
+            <UiButton variant="ghost" size="sm" disabled role="menuitem">项目</UiButton>
+            <UiButton
+              variant="ghost"
+              size="sm"
+              role="menuitem"
+              @click="runMoreAction(close, 'import')"
+            >
+              导入
+            </UiButton>
+            <UiButton
+              variant="ghost"
+              size="sm"
+              role="menuitem"
+              @click="runMoreAction(close, 'export')"
+            >
+              导出
+            </UiButton>
+          </div>
+        </template>
+      </UiPopover>
     </nav>
   </header>
 </template>
 
 <style scoped>
 .top-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
   min-width: 0;
   height: 48px;
   padding: 0 var(--space-3);
   color: var(--text-primary);
-  background: var(--glass-g2-background);
-  border: 1px solid var(--border-strong);
   border-radius: var(--radius-floating);
-  box-shadow: var(--shadow-floating);
 }
 
 .top-toolbar-identity {
@@ -94,8 +166,8 @@ const emit = defineEmits<{
 .top-toolbar-title {
   margin: 0;
   overflow: hidden;
-  font-size: 1rem;
-  font-weight: 650;
+  font-size: var(--font-size-window-title);
+  font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -108,35 +180,36 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
+.top-toolbar-history,
 .top-toolbar-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.375rem;
+  gap: var(--space-1);
   min-width: 0;
-  overflow: hidden;
 }
 
-.top-toolbar-actions button {
-  padding: 0.375rem 0.5rem;
-  color: var(--color-toolbar-muted);
-  background: transparent;
-  border: 1px solid #334155;
-  border-radius: 0.25rem;
-  white-space: nowrap;
+.top-toolbar-history {
+  justify-self: center;
 }
 
-.top-toolbar-actions button:disabled {
-  opacity: 0.8;
+.top-toolbar-actions {
+  justify-self: end;
+  justify-content: flex-end;
 }
 
 .top-toolbar-persistence {
-  color: var(--color-toolbar-muted);
-  font-size: 0.75rem;
+  margin-right: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--font-size-metadata);
   white-space: nowrap;
 }
 
 .top-toolbar-persistence--error {
-  color: #fca5a5;
+  color: var(--status-danger);
+}
+
+.top-toolbar-more-menu {
+  display: grid;
+  gap: var(--space-1);
 }
 </style>

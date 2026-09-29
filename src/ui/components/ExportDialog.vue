@@ -1,75 +1,51 @@
 <script setup lang="ts">
+import UiButton from '@/ui/components/base/UiButton.vue';
+import UiDialog from '@/ui/components/base/UiDialog.vue';
+
 defineProps<{ open: boolean }>();
 const emit = defineEmits<{ close: []; 'export-game-config': []; 'export-project': [] }>();
 </script>
 
 <template>
-  <div v-if="open" class="export-dialog-backdrop" role="presentation">
-    <section class="export-dialog" role="dialog" aria-modal="true" aria-label="导出">
-      <header class="export-dialog-header">
-        <h2>导出</h2>
-      </header>
-      <div class="export-dialog-content">
-        <button type="button" @click="emit('export-game-config')">导出游戏关卡配置</button>
+  <UiDialog :open="open" title="导出" size="md" @close-request="emit('close')">
+    <div class="export-dialog-content">
+      <section class="export-dialog-action-row">
+        <UiButton variant="secondary" @click="emit('export-game-config')">
+          导出游戏关卡配置
+        </UiButton>
         <p>用于游戏运行时读取，包含当前项目内的全部关卡配置。</p>
-        <button type="button" @click="emit('export-project')">导出项目备份</button>
+      </section>
+      <section class="export-dialog-action-row">
+        <UiButton variant="secondary" @click="emit('export-project')">导出项目备份</UiButton>
         <p>包含当前项目的全部关卡，用于编辑器备份和恢复。</p>
-      </div>
-      <footer class="export-dialog-actions">
-        <button type="button" @click="emit('close')">取消</button>
-      </footer>
-    </section>
-  </div>
+      </section>
+    </div>
+    <template #footer>
+      <UiButton variant="secondary" @click="emit('close')">取消</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <style scoped>
-.export-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgb(15 23 42 / 55%);
-}
-
-.export-dialog {
-  width: min(100%, 28rem);
-  overflow: hidden;
-  background: var(--color-panel-background);
-  border: 1px solid var(--color-panel-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 20px 40px rgb(15 23 42 / 35%);
-}
-
-.export-dialog-header,
-.export-dialog-content,
-.export-dialog-actions {
-  padding: 1rem;
-}
-
-.export-dialog-header {
-  border-bottom: 1px solid var(--color-panel-border);
-}
-
-.export-dialog-header h2,
-.export-dialog-content p {
-  margin: 0;
-}
-
 .export-dialog-content {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-4);
 }
 
-.export-dialog-content p {
-  margin-bottom: 0.75rem;
-  color: var(--color-panel-muted);
-  font-size: 0.875rem;
+.export-dialog-action-row {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--control-background);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
 }
 
-.export-dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid var(--color-panel-border);
+.export-dialog-action-row p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-metadata);
+  line-height: 1.5;
 }
 </style>

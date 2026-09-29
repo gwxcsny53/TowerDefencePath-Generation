@@ -3,6 +3,9 @@ import { computed, ref, watch } from 'vue';
 
 import { findProjectLevel, isValidNewLevelSpec } from '@/editor';
 import type { EditorProject, NewLevelSpec } from '@/editor';
+import UiButton from '@/ui/components/base/UiButton.vue';
+import UiDialog from '@/ui/components/base/UiDialog.vue';
+import UiNumberInput from '@/ui/components/base/UiNumberInput.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -49,91 +52,58 @@ function create(): void {
 </script>
 
 <template>
-  <div v-if="open" class="new-level-backdrop" role="presentation">
-    <section class="new-level-dialog" role="dialog" aria-modal="true" aria-label="新建关卡">
-      <h2>新建关卡</h2>
-      <label
-        >章节<input
-          type="number"
+  <UiDialog :open="open" title="新建关卡" size="sm" @close-request="emit('cancel')">
+    <div class="new-level-content">
+      <label>
+        章节
+        <UiNumberInput
+          data-autofocus
           min="1"
           step="1"
           :value="chapter"
           @input="updateNumber($event, 'chapter')"
-      /></label>
-      <label
-        >关卡<input
-          type="number"
-          min="1"
-          step="1"
-          :value="stage"
-          @input="updateNumber($event, 'stage')"
-      /></label>
-      <label
-        >宽度（列）<input
-          type="number"
-          min="1"
-          step="1"
-          :value="cols"
-          @input="updateNumber($event, 'cols')"
-      /></label>
-      <label
-        >高度（行）<input
-          type="number"
-          min="1"
-          step="1"
-          :value="rows"
-          @input="updateNumber($event, 'rows')"
-      /></label>
+        />
+      </label>
+      <label>
+        关卡
+        <UiNumberInput min="1" step="1" :value="stage" @input="updateNumber($event, 'stage')" />
+      </label>
+      <label>
+        宽度（列）
+        <UiNumberInput min="1" step="1" :value="cols" @input="updateNumber($event, 'cols')" />
+      </label>
+      <label>
+        高度（行）
+        <UiNumberInput min="1" step="1" :value="rows" @input="updateNumber($event, 'rows')" />
+      </label>
       <p v-if="!isValid" class="new-level-error">{{ errorMessage }}</p>
-      <div class="new-level-actions">
-        <button type="button" :disabled="!isValid" @click="create">创建</button>
-        <button type="button" @click="emit('cancel')">取消</button>
-      </div>
-    </section>
-  </div>
+    </div>
+    <template #footer>
+      <UiButton variant="secondary" @click="emit('cancel')">取消</UiButton>
+      <UiButton variant="primary" :disabled="!isValid" @click="create">创建</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <style scoped>
-.new-level-backdrop {
-  position: fixed;
-  z-index: 10;
-  inset: 0;
+.new-level-content {
   display: grid;
-  place-items: center;
-  background: rgba(15, 23, 42, 0.35);
+  gap: var(--space-3);
 }
-.new-level-dialog {
-  display: grid;
-  gap: 0.625rem;
-  width: min(24rem, calc(100vw - 2rem));
-  padding: 1rem;
-  color: #0f172a;
-  background: #fff;
-  border-radius: 0.375rem;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
-}
-.new-level-dialog h2,
-.new-level-dialog p {
+
+.new-level-content p {
   margin: 0;
 }
-.new-level-dialog label {
+
+.new-level-content label {
   display: grid;
-  gap: 0.25rem;
-  color: #475569;
-  font-size: 0.8125rem;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
 }
-.new-level-dialog input {
-  padding: 0.375rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.25rem;
-}
+
 .new-level-error {
-  color: #b91c1c;
-  font-size: 0.75rem;
-}
-.new-level-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  color: var(--status-danger);
+  font-size: var(--font-size-metadata);
 }
 </style>

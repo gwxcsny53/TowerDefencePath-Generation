@@ -525,6 +525,7 @@ Junction Inspector 是 M4 的发布门禁和复杂 UI 压力测试。只要 Junc
 - `src/ui/components/InspectorSection.vue`
 - `src/ui/components/PropertyRow.vue`
 - `src/ui/components/LevelActionsMenu.vue`
+- `src/ui/components/DeleteLevelDialog.vue`
 - `src/ui/components/JunctionDirectionRule.vue`，仅用于拆分展示，不承载业务计算
 - `src/ui/styles/editor-panels.css`
 
@@ -536,7 +537,8 @@ Junction Inspector 是 M4 的发布门禁和复杂 UI 压力测试。只要 Junc
 - 不修改 `getJunctionEditorState`、Direction 模型或 Junction Editor。
 - 不改变任一 existing emit。
 - 不改变 Spawn timing 和 Junction weight 的 commit 时机。
-- 不添加新的业务确认步骤；删除确认仍沿用当前语义。
+- 删除仍必须二次确认，但 Presentation 从 LevelTree Header 内 inline confirmation 迁移为统一 Modal Confirm Dialog。
+- Delete disabled 规则保持；Cancel 不修改项目状态。
 - 不修改 Canvas selection model。
 - 不修改 RenderTheme。
 
@@ -544,7 +546,7 @@ Junction Inspector 是 M4 的发布门禁和复杂 UI 压力测试。只要 Junc
 
 1. 把 LevelTree 的视觉职责迁移为 LevelPanel，但保留组件或建立兼容 facade，避免大范围 import 改名。
 2. Panel Header 只常驻项目名和 `+`；Duplicate / Resize / Delete 放入 More menu。
-3. More menu 的每个 action 直接触发原有 emit；保留当前二次删除确认逻辑。
+3. More menu 中 Duplicate / Resize 直接触发原有 emit；Delete 打开统一 Modal Confirm Dialog，Confirm 后仍触发现有 `delete-current` / `editorStore.deleteCurrentLevel`，Cancel 不修改项目状态。
 4. Level Item 实现 Default/Hover/Active/Disabled，Active 使用 soft surface + accent dot，不用实心蓝底。
 5. PropertyPanel 用 InspectorSection / PropertyRow 统一 Type、Position、ID、Spawn timing、Tower locked。
 6. Empty State 保持安静，不加入大插画或主按钮。
@@ -559,7 +561,7 @@ Junction Inspector 是 M4 的发布门禁和复杂 UI 压力测试。只要 Junc
 - Level 切换与 chapter group。
 - New / Duplicate / Resize / Delete 的现有 emits。
 - 至少保留一个 Level 时 Delete disabled。
-- 删除的两步确认行为。
+- 删除的二次确认语义与 Delete disabled 规则；确认界面改为统一 Modal Confirm Dialog。
 - Path / Spawn / End / Tower 的属性内容。
 - Tower locked checkbox。
 - Spawn timing 合法值提交、非法值忽略。
