@@ -132,11 +132,11 @@ Lens 宽度可以：
 36px
 
 这就是“液态感”，而不是单纯 translate。6. Hover Tooltip 产品决策
-当前产品不使用自定义 Hover Tooltip，也不使用原生 title 代替。
+ToolDock 的纯图标按钮是 Hover Tooltip 的唯一例外；悬停约 350ms 或键盘聚焦时只显示工具名，快捷键仍保留在 aria-label。TopToolbar 等文字明确的控件不使用 Hover Tooltip，也不使用原生 title 代替。
 
 IconButton 必须提供准确的 aria-label。
-快捷键、Disabled 原因或其他必要说明应使用可见文案、Popover、Dialog 或帮助文档表达，不能只在鼠标悬停时显示。
-未经新的产品决策与设计系统修订，不得重新引入 Hover Tooltip。7. LevelPanel 蓝图
+除 ToolDock 的局部提示外，快捷键、Disabled 原因或其他必要说明应使用可见文案、Popover、Dialog 或帮助文档表达，不能只在鼠标悬停时显示。
+不得引入全局 Hover Tooltip 组件。7. LevelPanel 蓝图
 G1。
 顶部：
 LEVELS +

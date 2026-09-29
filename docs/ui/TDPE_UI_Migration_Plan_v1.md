@@ -392,7 +392,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 - Enabled 与 Disabled 可能视觉相同。
 - Focus 依赖浏览器默认 outline。
 - Dialog 的宽度、backdrop、radius、padding 与按钮层级不统一。
-- 没有统一 IconButton、Popover 或 BaseDialog；当前产品不使用 Hover Tooltip。
+- 没有统一 IconButton、Popover 或 BaseDialog；Hover Tooltip 仅用于 M5 ToolDock。
 
 ## 涉及文件
 
@@ -437,7 +437,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 4. Text/Number Input 统一 32px 高度、Focus Ring、Error 和 Disabled。
 5. Number Input 明确区分临时输入值与 `change` commit；不得默认按每次 input 写 Store。
 6. Checkbox 使用统一视觉但保留原生可访问 input。
-7. 当前产品不使用 Hover Tooltip，也不使用 native `title` 替代；关键操作文字和状态信息保持可见。
+7. 本阶段不使用 Hover Tooltip，也不使用 native `title` 替代；M5 ToolDock 是唯一例外，关键操作文字和状态信息保持可见。
 8. UiDialog 统一 backdrop、focus entry、Escape、宽度、header/content/footer slot 与 `aria-modal`。
 9. 先迁移 TopToolbar，再迁移四个 Dialog；每迁移一个组件立即做行为对照。
 10. Import / Export 移入 TopBar More menu 时，外层菜单只调用原有 `import` / `export` emits。
@@ -458,7 +458,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 
 - 包装原生 input 后遗漏 `valueAsNumber`、`change`、checked 或 disabled 透传。
 - Dialog focus management 造成快捷键误触或关闭后焦点丢失。
-- Icon-only 后可发现性下降；通过 `aria-label` 和可见上下文保证可访问性，不引入 Hover Tooltip。
+- Icon-only 后可发现性下降；通过 `aria-label` 和可见上下文保证可访问性，M5 ToolDock 另提供局部 Hover Tooltip。
 - Popover 与 Dialog z-index 冲突。
 - Base component 过度抽象，反而要求业务组件配合重构。
 
@@ -660,7 +660,7 @@ M5 完成后，1440×900 的主要结构应与 Design System 基线一致，不�
 ## 实现步骤
 
 1. 将现有 ToolPalette 置入 `floating-ui-layer`，改为约 300×44 的 ToolDock。
-2. 工具项使用 36×36 IconButton，保留 aria-label 与快捷键 1–6；不使用 Hover Tooltip 或 native title。
+2. 工具项使用 36×36 IconButton，保留包含快捷键的 aria-label 与快捷键 1–6；局部 Tooltip 只显示工具名，不使用 native title。
 3. Active Tool 先使用静态 G3 soft indicator，不在 M5 实现 stretch/spring。
 4. StatusBar 右侧显示 Validation 摘要；点击后切换 Validation Drawer。
 5. Validation not-run / stale / passed 默认不占大空间；failed/warning 通过摘要提示。

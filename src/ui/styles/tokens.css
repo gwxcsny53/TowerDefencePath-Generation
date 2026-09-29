@@ -104,6 +104,7 @@
   --glass-g1-blur: 18px;
   --glass-g1-saturation: 115%;
   --glass-g2-background: rgba(28, 34, 44, 0.52);
+  --glass-g2-dense-background: rgba(18, 24, 33, 0.78);
   --glass-g2-blur: 24px;
   --glass-g2-saturation: 120%;
   --glass-g3-background: var(--accent-soft);

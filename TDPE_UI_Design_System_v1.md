@@ -493,7 +493,7 @@ Inspector    336px
 | Diamond | Tower |
 | Eraser | Eraser |
 
-ToolDock 不使用 Hover Tooltip。每个 IconButton 必须提供准确的 `aria-label`；快捷键说明通过可见帮助或文档提供，不依赖鼠标悬停。
+ToolDock 是 Hover Tooltip 的唯一例外：纯图标按钮悬停约 350ms 或键盘聚焦时，在按钮上方只显示工具名。每个 IconButton 仍必须提供包含快捷键的准确 `aria-label`，不得使用原生 `title`。
 
 ---
 
@@ -1112,16 +1112,16 @@ Saved：
 
 ---
 
-# 38. Hover Tooltip（当前不使用）
+# 38. Hover Tooltip（仅 ToolDock 使用）
 
-当前产品不使用自定义 Hover Tooltip，也不使用原生 `title` 作为替代。
+当前产品仅 ToolDock 的纯图标按钮使用局部 Hover Tooltip；TopToolbar 等文字明确的控件不使用。任何控件都不使用原生 `title` 作为替代。
 
 交互信息遵循：
 
 - IconButton 必须提供准确的 `aria-label`。
 - 关键操作保留可见文字，不把含义只放在 Hover 状态中。
 - Disabled 原因或快捷键说明如需展示，应使用页面内可见文案、Popover、Dialog 或帮助文档。
-- 未经新的产品决策与设计系统修订，不得重新引入 Hover Tooltip 组件。
+- 不新增全局 Hover Tooltip 组件；ToolDock 的提示在组件内实现。
 
 ---
 
@@ -1352,7 +1352,7 @@ ToolDock 尺寸保持不变。
 
 必须：
 
-- 所有 IconButton 都有准确的 `aria-label`，不依赖 Hover Tooltip 或原生 `title`。
+- 所有 IconButton 都有准确的 `aria-label`，不依赖 Hover Tooltip 或原生 `title` 才能被辅助技术识别。
 - Focus Visible 必须存在。
 - Disabled 必须具有视觉差异。
 - 状态不能只依赖颜色。
@@ -1513,7 +1513,7 @@ Editor
 - Input
 - Checkbox
 - Toggle
-- Hover Tooltip（不实现；当前产品不使用）
+- Hover Tooltip（仅 ToolDock 局部实现）
 - Popover
 - Dialog
 

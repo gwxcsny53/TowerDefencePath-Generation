@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { Castle, Eraser, Flag, MapPin, MousePointer2, Route } from 'lucide-vue-next';
 import { EDITOR_TOOLS, getEditorToolShortcutLabel } from '@/editor';
 import type { EditorTool } from '@/editor';
@@ -22,20 +23,64 @@ const toolIcons = {
   tower: Castle,
   eraser: Eraser,
 };
+const hoveredTool = ref<EditorTool | null>(null);
+const focusedTool = ref<EditorTool | null>(null);
+const visibleTooltipTool = computed(() => focusedTool.value ?? hoveredTool.value);
+let hoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearHoverTimer(): void {
+  if (hoverTimer === null) return;
+  clearTimeout(hoverTimer);
+  hoverTimer = null;
+}
+
+function scheduleTooltip(event: PointerEvent, tool: EditorTool): void {
+  if (event.pointerType !== 'mouse') return;
+  clearHoverTimer();
+  hoverTimer = setTimeout(() => {
+    hoveredTool.value = tool;
+    hoverTimer = null;
+  }, 350);
+}
+
+function hideTooltip(): void {
+  clearHoverTimer();
+  hoveredTool.value = null;
+}
+
+function handlePointerDown(event: PointerEvent): void {
+  if (event.pointerType !== 'mouse') return;
+  event.preventDefault();
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+}
+
+onBeforeUnmount(clearHoverTimer);
 </script>
 
 <template>
   <nav class="tool-dock" aria-label="编辑工具">
-    <UiIconButton
+    <span
       v-for="tool in EDITOR_TOOLS"
       :key="tool"
-      size="tool"
-      :class="{ 'is-active': activeTool === tool }"
-      :label="`${toolLabels[tool]}，快捷键 ${getEditorToolShortcutLabel(tool)}`"
-      :aria-pressed="activeTool === tool"
-      @click="emit('select-tool', tool)"
+      class="tool-dock__item"
+      @pointerenter="scheduleTooltip($event, tool)"
+      @pointerleave="hideTooltip"
     >
-      <component :is="toolIcons[tool]" :size="18" aria-hidden="true" />
-    </UiIconButton>
+      <UiIconButton
+        size="tool"
+        :class="{ 'is-active': activeTool === tool }"
+        :label="`${toolLabels[tool]}，快捷键 ${getEditorToolShortcutLabel(tool)}`"
+        :aria-pressed="activeTool === tool"
+        @pointerdown="handlePointerDown"
+        @focus="focusedTool = tool"
+        @blur="focusedTool = null"
+        @click="emit('select-tool', tool)"
+      >
+        <component :is="toolIcons[tool]" :size="18" aria-hidden="true" />
+      </UiIconButton>
+      <span v-if="visibleTooltipTool === tool" class="tool-dock__tooltip" aria-hidden="true">
+        {{ toolLabels[tool] }}
+      </span>
+    </span>
   </nav>
 </template>

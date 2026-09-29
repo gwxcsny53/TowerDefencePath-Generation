@@ -222,9 +222,8 @@ E End
 ◇ Tower
 ⌫ Eraser
 
-鼠标 Hover 才显示 Tooltip：
+鼠标 Hover 或键盘聚焦显示 ToolDock Tooltip：
 Path
-Shortcut: 2
 
 Liquid Lens
 Dock 里面始终只有一个 Active Lens。
@@ -455,10 +454,9 @@ Dialog 不超过：
 
 危险按钮才使用红色。
 不要整个 Dialog 都红。13. Tooltip 蓝图
-Toolbar Icon、Tool Dock、Disabled 操作都通过 Tooltip 提供解释。
+仅 Tool Dock 的纯图标按钮通过 Tooltip 提供工具名；Toolbar 和 Disabled 操作使用可见文案或其他明确反馈。
 ╭──────────────────╮
 │ Draw Path │
-│ Shortcut 2 │
 ╰──────────────────╯
 ▲
 │
