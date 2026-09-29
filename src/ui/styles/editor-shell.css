@@ -92,6 +92,10 @@
   display: none;
 }
 
+.editor-overlay-close {
+  display: none;
+}
+
 /* Legacy shared panel rules. Scheduled for M3/M4 migration. */
 .panel {
   display: grid;
@@ -186,6 +190,25 @@
   .editor-level-area.is-overlay-open,
   .editor-property-area.is-overlay-open {
     transform: translateX(0);
+  }
+
+  .editor-overlay-close {
+    position: absolute;
+    z-index: var(--z-floating);
+    top: var(--space-2);
+    right: var(--space-2);
+    display: grid;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 18px;
+    line-height: 1;
+    place-items: center;
+    background: var(--glass-g2-background);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    box-shadow: var(--shadow-floating);
   }
 
   .editor-overlay-toggle-bar {

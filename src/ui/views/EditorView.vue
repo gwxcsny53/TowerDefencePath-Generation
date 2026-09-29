@@ -97,6 +97,12 @@ function toggleInspectorOverlay(): void {
   isInspectorOverlayOpen.value = !isInspectorOverlayOpen.value;
   if (isInspectorOverlayOpen.value) isLevelOverlayOpen.value = false;
 }
+function closeLevelOverlay(): void {
+  isLevelOverlayOpen.value = false;
+}
+function closeInspectorOverlay(): void {
+  isInspectorOverlayOpen.value = false;
+}
 const newLevelDefaults = computed<NewLevelSpec>(() => ({
   chapter: activeLevelAddress.value.chapter,
   stage: getNextAvailableStage(project.value, activeLevelAddress.value.chapter),
@@ -227,6 +233,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         :class="{ 'is-overlay-open': isLevelOverlayOpen }"
         aria-label="关卡列表"
       >
+        <button
+          v-if="isLevelOverlayOpen"
+          class="editor-overlay-close"
+          type="button"
+          aria-label="关闭关卡面板"
+          title="关闭关卡面板"
+          @click="closeLevelOverlay"
+        >
+          ×
+        </button>
         <LevelTree
           :project="project"
           :active-level-address="activeLevelAddress"
@@ -282,6 +298,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         :class="{ 'is-overlay-open': isInspectorOverlayOpen }"
         aria-label="属性面板"
       >
+        <button
+          v-if="isInspectorOverlayOpen"
+          class="editor-overlay-close"
+          type="button"
+          aria-label="关闭属性面板"
+          title="关闭属性面板"
+          @click="closeInspectorOverlay"
+        >
+          ×
+        </button>
         <PropertyPanel
           :level="workingLevel"
           :selection="selection"
