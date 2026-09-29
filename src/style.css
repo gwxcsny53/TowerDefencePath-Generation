@@ -4,6 +4,7 @@
 @import './ui/styles/motion.css';
 @import './ui/styles/controls.css';
 @import './ui/styles/editor-shell.css';
+@import './ui/styles/editor-panels.css';
 
 :root {
   /*

@@ -29,13 +29,14 @@
   overflow: hidden;
 }
 
-/* M2 compatibility surface: M4 replaces the light legacy panel content. */
-.editor-legacy-panel-frame {
-  padding: 1px;
+/* Shared G1 frame for the LevelPanel and Inspector. */
+.editor-panel-frame {
   background: var(--glass-g1-background);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-panel);
+  -webkit-backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
+  backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
 }
 
 .editor-canvas-stage {
@@ -104,7 +105,7 @@
   overflow: hidden;
 }
 
-/* Legacy shared panel rules. Scheduled for M3/M4 migration. */
+/* Legacy panel rules retained for M5 Validation migration. */
 .panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);

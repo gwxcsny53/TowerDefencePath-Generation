@@ -43,6 +43,7 @@ const isNewLevelDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
 const isExportDialogOpen = ref(false);
 const isResizeDialogOpen = ref(false);
+const isDeleteLevelDialogOpen = ref(false);
 const isLevelOverlayOpen = ref(false);
 const isInspectorOverlayOpen = ref(false);
 const isAnyEditorDialogOpen = computed(
@@ -50,7 +51,8 @@ const isAnyEditorDialogOpen = computed(
     isNewLevelDialogOpen.value ||
     isResizeDialogOpen.value ||
     isImportDialogOpen.value ||
-    isExportDialogOpen.value,
+    isExportDialogOpen.value ||
+    isDeleteLevelDialogOpen.value,
 );
 const importInput = ref<HTMLInputElement | null>(null);
 const pendingImport = ref<EditorImportPayload | null>(null);
@@ -227,9 +229,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
     />
 
     <main class="editor-workspace">
-      <!-- M2 compatibility surface: M4 replaces the light legacy LevelTree content. -->
       <aside
-        class="editor-level-area editor-legacy-panel-frame"
+        class="editor-level-area editor-panel-frame"
         :class="{ 'is-overlay-open': isLevelOverlayOpen }"
         aria-label="关卡列表"
       >
@@ -239,7 +240,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
             class="editor-overlay-close"
             type="button"
             aria-label="关闭关卡面板"
-            title="关闭关卡面板"
             @click="closeLevelOverlay"
           >
             ×
@@ -254,6 +254,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
             @duplicate-current="editorStore.duplicateCurrentLevel"
             @resize-current="isResizeDialogOpen = true"
             @delete-current="editorStore.deleteCurrentLevel"
+            @delete-dialog-open-change="isDeleteLevelDialogOpen = $event"
           />
         </div>
       </aside>
@@ -292,9 +293,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         <div class="editor-drawer-layer" aria-hidden="true"></div>
       </section>
 
-      <!-- M2 compatibility surface: M4 replaces the light legacy PropertyPanel content. -->
       <aside
-        class="editor-property-area editor-legacy-panel-frame"
+        class="editor-property-area editor-panel-frame"
         :class="{ 'is-overlay-open': isInspectorOverlayOpen }"
         aria-label="属性面板"
       >
@@ -304,7 +304,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
             class="editor-overlay-close"
             type="button"
             aria-label="关闭属性面板"
-            title="关闭属性面板"
             @click="closeInspectorOverlay"
           >
             ×

@@ -7,6 +7,45 @@
   transition-timing-function: var(--ease-standard);
 }
 
+.ui-checkbox {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  background: var(--control-background);
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.ui-checkbox:checked {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.ui-checkbox:checked::after {
+  display: block;
+  width: 5px;
+  height: 9px;
+  margin: 2px 0 0 5px;
+  border: solid var(--text-inverse);
+  border-width: 0 2px 2px 0;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.ui-checkbox:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+.ui-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ui-button,
 .ui-icon-button {
   display: inline-flex;
