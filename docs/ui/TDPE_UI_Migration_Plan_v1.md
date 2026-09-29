@@ -392,7 +392,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 - Enabled 与 Disabled 可能视觉相同。
 - Focus 依赖浏览器默认 outline。
 - Dialog 的宽度、backdrop、radius、padding 与按钮层级不统一。
-- 没有统一 IconButton、Tooltip、Popover 或 BaseDialog。
+- 没有统一 IconButton、Popover 或 BaseDialog；当前产品不使用 Hover Tooltip。
 
 ## 涉及文件
 
@@ -412,7 +412,6 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 - `src/ui/components/base/UiNumberInput.vue`
 - `src/ui/components/base/UiCheckbox.vue`
 - `src/ui/components/base/UiToggle.vue`
-- `src/ui/components/base/UiTooltip.vue`
 - `src/ui/components/base/UiPopover.vue`
 - `src/ui/components/base/UiDialog.vue`
 - `src/ui/components/base/UiProgressBar.vue`
@@ -434,11 +433,11 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 
 1. 定义 Base Control API，优先透传原生属性、aria、disabled、name、type 和键盘行为。
 2. Button 只提供 Primary / Secondary / Ghost / Danger 四种 variant。
-3. IconButton 统一 Compact / Normal / ToolDock 三种尺寸。
+3. IconButton 统一 Compact / Normal / ToolDock 三种尺寸，并保留 `aria-label`。
 4. Text/Number Input 统一 32px 高度、Focus Ring、Error 和 Disabled。
 5. Number Input 明确区分临时输入值与 `change` commit；不得默认按每次 input 写 Store。
 6. Checkbox 使用统一视觉但保留原生可访问 input。
-7. Tooltip 支持 aria-label、400ms 延迟和快捷键说明。
+7. 当前产品不使用 Hover Tooltip，也不使用 native `title` 替代；关键操作文字和状态信息保持可见。
 8. UiDialog 统一 backdrop、focus entry、Escape、宽度、header/content/footer slot 与 `aria-modal`。
 9. 先迁移 TopToolbar，再迁移四个 Dialog；每迁移一个组件立即做行为对照。
 10. Import / Export 移入 TopBar More menu 时，外层菜单只调用原有 `import` / `export` emits。
@@ -447,7 +446,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 ## 需要保持的现有行为
 
 - TopToolbar 全部六类事件与 disabled 条件。
-- persistence 状态和 error title。
+- persistence 的 loading / saving / saved / error 可见状态信息。
 - Undo/Redo 快捷键不受按钮替换影响。
 - New Level 的默认章节/关卡/尺寸与创建校验。
 - Resize 同尺寸时 Apply disabled，尺寸变化时 impact summary 保留。
@@ -459,7 +458,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 
 - 包装原生 input 后遗漏 `valueAsNumber`、`change`、checked 或 disabled 透传。
 - Dialog focus management 造成快捷键误触或关闭后焦点丢失。
-- Icon-only 后可发现性下降。
+- Icon-only 后可发现性下降；通过 `aria-label` 和可见上下文保证可访问性，不引入 Hover Tooltip。
 - Popover 与 Dialog z-index 冲突。
 - Base component 过度抽象，反而要求业务组件配合重构。
 
@@ -472,7 +471,7 @@ M2 是结构迁移，不要求 ToolDock、Validation 和 Route Preview 已完成
 3. 验证 Undo/Redo disabled 与 enable 后行为。
 4. 逐个打开 New/Resize/Import/Export Dialog；检查焦点进入、Escape、Cancel、背景阻断。
 5. 用合法和非法 Number Input 值验证错误状态与提交边界。
-6. 检查 IconButton 的 tooltip、aria-label 和快捷键提示。
+6. 检查 IconButton 的 `aria-label`，并确认 persistence 状态与关键操作文字保持可见。
 
 ## 截图验收状态
 
