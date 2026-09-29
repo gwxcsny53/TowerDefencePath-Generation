@@ -39,7 +39,7 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
     </div>
 
     <nav class="top-toolbar-history" aria-label="历史操作">
-      <UiTooltip text="撤销" shortcut="Ctrl/Cmd + Z">
+      <UiTooltip text="撤销" shortcut="Ctrl/Cmd + Z" placement="bottom">
         <template #default="{ tooltipId }">
           <UiIconButton
             label="撤销"
@@ -52,7 +52,7 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
           </UiIconButton>
         </template>
       </UiTooltip>
-      <UiTooltip text="重做" shortcut="Ctrl/Cmd + Y">
+      <UiTooltip text="重做" shortcut="Ctrl/Cmd + Y" placement="bottom">
         <template #default="{ tooltipId }">
           <UiIconButton
             label="重做"
@@ -87,7 +87,7 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
         <ListChecks :size="16" aria-hidden="true" />
         校验
       </UiButton>
-      <UiTooltip :text="testRouteTitle">
+      <UiTooltip :text="testRouteTitle" placement="bottom">
         <template #default="{ tooltipId }">
           <UiButton
             variant="primary"
@@ -102,7 +102,7 @@ function runMoreAction(close: () => void, action: 'import' | 'export'): void {
       </UiTooltip>
       <UiPopover>
         <template #trigger="{ open, toggle }">
-          <UiTooltip text="更多操作">
+          <UiTooltip text="更多操作" placement="bottom">
             <template #default="{ tooltipId }">
               <UiIconButton
                 label="更多操作"
