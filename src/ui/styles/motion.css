@@ -1,0 +1,34 @@
+.tdpe-transition-fast {
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.tdpe-transition-normal {
+  transition-duration: var(--motion-normal);
+  transition-timing-function: var(--ease-standard);
+}
+
+.tdpe-transition-panel {
+  transition-duration: var(--motion-panel);
+  transition-timing-function: var(--ease-standard);
+}
+
+.tdpe-transition-liquid {
+  transition-duration: var(--motion-liquid);
+  transition-timing-function: var(--ease-standard);
+}
+
+.tdpe-transition-modal {
+  transition-duration: var(--motion-modal);
+  transition-timing-function: var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-panel: 0ms;
+    --motion-liquid: 0ms;
+    --motion-modal: 0ms;
+  }
+}

@@ -1,0 +1,27 @@
+.tdpe-surface-g0 {
+  background: var(--bg-workspace);
+}
+
+.tdpe-glass-g1 {
+  background: var(--glass-g1-background);
+  border: 1px solid var(--border-default);
+  -webkit-backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
+  backdrop-filter: blur(var(--glass-g1-blur)) saturate(var(--glass-g1-saturation));
+  box-shadow: var(--shadow-panel);
+}
+
+.tdpe-glass-g2 {
+  background: var(--glass-g2-background);
+  border: 1px solid var(--border-strong);
+  -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
+  box-shadow: var(--shadow-floating);
+}
+
+.tdpe-glass-g3 {
+  background: var(--glass-g3-background);
+  border: 1px solid var(--glass-g3-border);
+  -webkit-backdrop-filter: blur(var(--glass-g3-blur)) saturate(var(--glass-g3-saturation));
+  backdrop-filter: blur(var(--glass-g3-blur)) saturate(var(--glass-g3-saturation));
+  box-shadow: var(--shadow-liquid);
+}
