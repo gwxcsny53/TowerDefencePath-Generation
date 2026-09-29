@@ -233,25 +233,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         :class="{ 'is-overlay-open': isLevelOverlayOpen }"
         aria-label="关卡列表"
       >
-        <button
-          v-if="isLevelOverlayOpen"
-          class="editor-overlay-close"
-          type="button"
-          aria-label="关闭关卡面板"
-          title="关闭关卡面板"
-          @click="closeLevelOverlay"
-        >
-          ×
-        </button>
-        <LevelTree
-          :project="project"
-          :active-level-address="activeLevelAddress"
-          @select-level="editorStore.openLevel"
-          @create-level="isNewLevelDialogOpen = true"
-          @duplicate-current="editorStore.duplicateCurrentLevel"
-          @resize-current="isResizeDialogOpen = true"
-          @delete-current="editorStore.deleteCurrentLevel"
-        />
+        <header class="editor-overlay-chrome">
+          <span class="editor-overlay-chrome-title">关卡</span>
+          <button
+            class="editor-overlay-close"
+            type="button"
+            aria-label="关闭关卡面板"
+            title="关闭关卡面板"
+            @click="closeLevelOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="editor-overlay-content">
+          <LevelTree
+            :project="project"
+            :active-level-address="activeLevelAddress"
+            @select-level="editorStore.openLevel"
+            @create-level="isNewLevelDialogOpen = true"
+            @duplicate-current="editorStore.duplicateCurrentLevel"
+            @resize-current="isResizeDialogOpen = true"
+            @delete-current="editorStore.deleteCurrentLevel"
+          />
+        </div>
       </aside>
 
       <section class="editor-canvas-stage" aria-label="地图编辑区域">
@@ -267,14 +271,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         />
         <div class="editor-floating-ui-layer">
           <div class="editor-overlay-toggle-bar" aria-label="编辑器面板">
-            <button type="button" :aria-pressed="isLevelOverlayOpen" @click="toggleLevelOverlay">
+            <button v-if="!isLevelOverlayOpen" type="button" @click="toggleLevelOverlay">
               关卡
             </button>
-            <button
-              type="button"
-              :aria-pressed="isInspectorOverlayOpen"
-              @click="toggleInspectorOverlay"
-            >
+            <button v-if="!isInspectorOverlayOpen" type="button" @click="toggleInspectorOverlay">
               属性
             </button>
           </div>
@@ -298,27 +298,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         :class="{ 'is-overlay-open': isInspectorOverlayOpen }"
         aria-label="属性面板"
       >
-        <button
-          v-if="isInspectorOverlayOpen"
-          class="editor-overlay-close"
-          type="button"
-          aria-label="关闭属性面板"
-          title="关闭属性面板"
-          @click="closeInspectorOverlay"
-        >
-          ×
-        </button>
-        <PropertyPanel
-          :level="workingLevel"
-          :selection="selection"
-          @update-tower-locked="editorStore.setSelectedTowerLocked"
-          @update-spawn-move-seconds-per-cell="editorStore.setSelectedSpawnMoveSecondsPerCell"
-          @create-junction-config="editorStore.createSelectedJunctionConfig"
-          @remove-junction-config="editorStore.removeSelectedJunctionConfig"
-          @junction-entry-enabled="editorStore.setSelectedJunctionEntryEnabled"
-          @junction-exit-enabled="editorStore.setSelectedJunctionExitEnabled"
-          @junction-exit-weight="editorStore.setSelectedJunctionExitWeight"
-        />
+        <header class="editor-overlay-chrome">
+          <span class="editor-overlay-chrome-title">属性</span>
+          <button
+            class="editor-overlay-close"
+            type="button"
+            aria-label="关闭属性面板"
+            title="关闭属性面板"
+            @click="closeInspectorOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="editor-overlay-content">
+          <PropertyPanel
+            :level="workingLevel"
+            :selection="selection"
+            @update-tower-locked="editorStore.setSelectedTowerLocked"
+            @update-spawn-move-seconds-per-cell="editorStore.setSelectedSpawnMoveSecondsPerCell"
+            @create-junction-config="editorStore.createSelectedJunctionConfig"
+            @remove-junction-config="editorStore.removeSelectedJunctionConfig"
+            @junction-entry-enabled="editorStore.setSelectedJunctionEntryEnabled"
+            @junction-exit-enabled="editorStore.setSelectedJunctionExitEnabled"
+            @junction-exit-weight="editorStore.setSelectedJunctionExitWeight"
+          />
+        </div>
       </aside>
     </main>
 

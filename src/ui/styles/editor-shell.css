@@ -92,8 +92,16 @@
   display: none;
 }
 
-.editor-overlay-close {
+.editor-overlay-chrome {
   display: none;
+}
+
+.editor-overlay-content {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Legacy shared panel rules. Scheduled for M3/M4 migration. */
@@ -169,6 +177,8 @@
   .editor-level-area,
   .editor-property-area {
     position: absolute;
+    display: grid;
+    grid-template-rows: 32px minmax(0, 1fr);
     top: 0;
     bottom: 0;
     width: min(280px, calc(100% - var(--space-6)));
@@ -192,11 +202,25 @@
     transform: translateX(0);
   }
 
+  .editor-overlay-chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 0 var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-metadata);
+    background: var(--surface-dark);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .editor-overlay-chrome-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .editor-overlay-close {
-    position: absolute;
-    z-index: var(--z-floating);
-    top: var(--space-2);
-    right: var(--space-2);
     display: grid;
     width: 28px;
     height: 28px;
@@ -209,6 +233,10 @@
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-control);
     box-shadow: var(--shadow-floating);
+  }
+
+  .editor-overlay-content {
+    height: auto;
   }
 
   .editor-overlay-toggle-bar {
