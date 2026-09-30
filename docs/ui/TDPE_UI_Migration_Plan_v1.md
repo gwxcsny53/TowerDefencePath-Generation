@@ -113,7 +113,7 @@ M7 Optical Refraction / Performance
 
 如 UI 组件无法在不改变上述范围的前提下完成，应停止该 Milestone，记录阻塞点，而不是扩大修改范围。
 
-M1–M6 不得修改 Renderer semantic theme。M6.5 是专项授权例外，仅允许调整视觉 palette，并把 Selection 颜色接入 `RenderTheme`；Renderer 的几何、绘制顺序、坐标和业务语义仍不得改变。M7 不再重设计 Canvas palette。
+M1–M6 不得修改 Renderer semantic theme。M6.5 是专项授权例外，允许调整视觉 palette、把 Selection 颜色接入 `RenderTheme`，以及校准 Spawn、End、Tower、Locked Tower 的纯视觉 Marker 底形和图标；Renderer 的网格几何、绘制顺序、坐标、命中和业务语义仍不得改变。M7 不再重设计 Canvas palette 或 Marker。
 
 ### 3.3 文件修改边界
 
@@ -846,7 +846,13 @@ M6 只实现运动语言，不实现 Optical Refraction。
 
 ## 修改边界
 
-仅调整 `RenderTheme` 视觉值、Selection theme 接线、`MapCanvas.vue` 的样式和本计划文档。Canvas Host 使用 `--bg-canvas`，Grid Surface 略亮于 Host。Renderer 数值参数、绘制顺序、Viewport、Pointer/Grid、DPR、ResizeObserver、业务状态和 M6 Motion 保持不变；Canvas 不使用 Glass 或 Optical Refraction。
+Dark Canvas 首轮仅调整 `RenderTheme` 视觉值、Selection theme 接线、`MapCanvas.vue` 的样式和本计划文档。Canvas Host 使用 `--bg-canvas`，Grid Surface 略亮于 Host。Renderer 数值参数、绘制顺序、Viewport、Pointer/Grid、DPR、ResizeObserver、业务状态和 M6 Motion 保持不变；Canvas 不使用 Glass 或 Optical Refraction。
+
+## Semantic Marker Calibration
+
+M6.5 的后续 Marker pass 将 Spawn 绘制为绿色圆形底形加 MapPin-like 线图标、End 绘制为红色圆形底形加 Flag-like 线图标、Tower 绘制为琥珀色圆角方形底形加 Castle-like 线图标、Locked Tower 绘制为灰色圆角 Tower 加小锁。颜色仍负责快速分类，图标负责精确识别；小 Cell 优先保留底形。绘制使用 Canvas primitive，不引入 Vue 图标组件或依赖。
+
+本次 Marker pass 只改 Node 的纯视觉表现；Path、Grid、Junction、Selection、Validation 和 Route Preview 不调整。Node 遍历、坐标、命中、Renderer 顺序及 M7 范围保持不变。
 
 ## 验收门禁
 

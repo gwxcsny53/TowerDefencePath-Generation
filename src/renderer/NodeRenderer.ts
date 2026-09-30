@@ -1,5 +1,11 @@
 import type { EndPoint, SpawnPoint, TowerNode } from '@/core/model';
 
+import {
+  getMarkerGlyphMetrics,
+  renderEndMarker,
+  renderSpawnMarker,
+  renderTowerMarker,
+} from './MarkerGlyphRenderer';
 import type { RenderTheme } from './RenderTheme';
 import type { RenderViewport } from './RenderViewport';
 
@@ -16,35 +22,45 @@ export function renderNodes(
     return;
   }
 
-  renderCircularMarkers(context, spawnPoints, viewport, theme.spawnFill, theme.markerScale);
-  renderCircularMarkers(context, endPoints, viewport, theme.endFill, theme.markerScale);
+  renderSpawnMarkers(context, spawnPoints, viewport, theme);
+  renderEndMarkers(context, endPoints, viewport, theme);
   renderTowerNodes(context, towerNodes, viewport, theme);
 }
 
-function renderCircularMarkers(
+function renderSpawnMarkers(
   context: CanvasRenderingContext2D,
-  positions: readonly (SpawnPoint | EndPoint)[],
+  spawnPoints: readonly SpawnPoint[],
   viewport: RenderViewport,
-  fillStyle: string,
-  markerScale: number,
+  theme: RenderTheme,
 ): void {
-  const radius = Math.max(2, viewport.cellSize * markerScale);
+  const metrics = getMarkerGlyphMetrics(viewport.cellSize, theme.markerScale);
 
-  context.save();
-  context.fillStyle = fillStyle;
-
-  for (const position of positions) {
+  for (const position of spawnPoints) {
     if (!viewport.isInBounds(position)) {
       continue;
     }
 
     const center = viewport.gridCellCenter(position);
-    context.beginPath();
-    context.arc(center.x, center.y, radius, 0, Math.PI * 2);
-    context.fill();
+    renderSpawnMarker(context, center, metrics, theme.spawnFill, theme.spawnGlyph);
   }
+}
 
-  context.restore();
+function renderEndMarkers(
+  context: CanvasRenderingContext2D,
+  endPoints: readonly EndPoint[],
+  viewport: RenderViewport,
+  theme: RenderTheme,
+): void {
+  const metrics = getMarkerGlyphMetrics(viewport.cellSize, theme.markerScale);
+
+  for (const position of endPoints) {
+    if (!viewport.isInBounds(position)) {
+      continue;
+    }
+
+    const center = viewport.gridCellCenter(position);
+    renderEndMarker(context, center, metrics, theme.endFill, theme.endGlyph);
+  }
 }
 
 function renderTowerNodes(
@@ -53,9 +69,7 @@ function renderTowerNodes(
   viewport: RenderViewport,
   theme: RenderTheme,
 ): void {
-  const sideLength = Math.max(4, viewport.cellSize * theme.markerScale * 2);
-
-  context.save();
+  const metrics = getMarkerGlyphMetrics(viewport.cellSize, theme.markerScale);
 
   for (const towerNode of towerNodes) {
     if (!viewport.isInBounds(towerNode)) {
@@ -63,24 +77,13 @@ function renderTowerNodes(
     }
 
     const center = viewport.gridCellCenter(towerNode);
-    const halfSide = sideLength / 2;
-
-    context.fillStyle = towerNode.locked ? theme.lockedTowerFill : theme.towerFill;
-    context.globalAlpha = towerNode.locked ? 0.55 : 1;
-    context.fillRect(center.x - halfSide, center.y - halfSide, sideLength, sideLength);
-
-    if (towerNode.locked) {
-      context.globalAlpha = 1;
-      context.strokeStyle = theme.towerFill;
-      context.lineWidth = 1.5;
-      context.beginPath();
-      context.moveTo(center.x - halfSide, center.y - halfSide);
-      context.lineTo(center.x + halfSide, center.y + halfSide);
-      context.moveTo(center.x + halfSide, center.y - halfSide);
-      context.lineTo(center.x - halfSide, center.y + halfSide);
-      context.stroke();
-    }
+    renderTowerMarker(
+      context,
+      center,
+      metrics,
+      towerNode.locked ? theme.lockedTowerFill : theme.towerFill,
+      towerNode.locked ? theme.lockedTowerGlyph : theme.towerGlyph,
+      towerNode.locked ? theme.lockedTowerAccent : undefined,
+    );
   }
-
-  context.restore();
 }

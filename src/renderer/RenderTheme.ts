@@ -3,9 +3,14 @@ export interface RenderTheme {
   gridLine: string;
   pathFill: string;
   spawnFill: string;
+  spawnGlyph: string;
   endFill: string;
+  endGlyph: string;
   towerFill: string;
+  towerGlyph: string;
   lockedTowerFill: string;
+  lockedTowerGlyph: string;
+  lockedTowerAccent: string;
   configuredJunctionFill: string;
   unconfiguredJunctionStroke: string;
   staleJunctionStroke: string;
@@ -30,10 +35,15 @@ export const DEFAULT_RENDER_THEME: Readonly<RenderTheme> = {
   gridBackground: '#111923',
   gridLine: '#2a3848',
   pathFill: '#3d78b2',
-  spawnFill: '#22c55e',
-  endFill: '#ef4444',
-  towerFill: '#d18a16',
-  lockedTowerFill: '#667085',
+  spawnFill: '#169c50',
+  spawnGlyph: '#dcfce7',
+  endFill: '#dc454b',
+  endGlyph: '#fee2e2',
+  towerFill: '#b97814',
+  towerGlyph: '#fff3c4',
+  lockedTowerFill: '#4e5968',
+  lockedTowerGlyph: '#cbd5e1',
+  lockedTowerAccent: '#d8a13a',
   configuredJunctionFill: '#a78bfa',
   unconfiguredJunctionStroke: '#f59e0b',
   staleJunctionStroke: '#f87171',
