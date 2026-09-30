@@ -1035,6 +1035,26 @@ Revision 的 typecheck、lint、format:check、test:run、build 与 `git diff --
 
 用户后续复测 Preview 背景恢复柔和 Dense Blur、Grid / Path 不再被 displacement 强化、高光克制、文字/数字/ProgressBar/按钮清晰、playing → stopped / replay / close、enter/leave、1000×900 / 1440×900、Validation Drawer 组合、Lens / Dock 折射正常、统一 off 只影响 Lens + Dock，以及 Console。Revision 人工通过前 M7B-2 / M7B 不关闭，不创建 M7B-3，禁止进入 M7C。
 
+### M7B-2 Visual Revision Manual Acceptance
+
+按用户本轮提供的人工结果，Revision 后 Route Preview 视觉符合预期，Manual Acceptance PASS，M7B-2 CLOSED / M7B CLOSED。Route Preview final material frozen：G2 Dense Blur + Saturation + Border + Floating Shadow + Static Specular；无真实 displacement。No M7B-3。上方 prototype / revision 待验收文字保留为各实现轮历史，本轮不复测，也不把历史通过等同于 M7C 压力性能通过。
+
+### M7C Performance / Final Acceptance（2026-09-30）
+
+基线 `208762cfcd8f383c514f1e15e1c45211745a2cf3`（`main`）；M1–M6.5、M7A、Responsive Fix、M7B CLOSED，M7C START。本轮仅 Static Readiness + Performance Budget + Final Acceptance Preparation，生产代码变更为 0。
+
+新增 [TDPE UI Performance Budget](performance/TDPE_UI_Performance_Budget.md)，冻结真实 optical consumers MAX 2（Lens scale 3 / Dock scale 1），Preview 为普通 Dense Glass。预算规定无持续、重复且可归因于 optics 的 >50ms long task，无可感知响应回归或 Full 下明显 Preview 播放降级，Full/Fallback 布局差异 ≤1 CSS px；不虚构全设备 60fps、GPU memory 或 Paint 固定阈值。
+
+源代码精确搜索确认只有两个 SVG filter 与两个 URL backdrop consumer selectors；Preview fragment、Canvas / Inspector / Validation displacement 均为 0。Lens/Dock filter complexity 和参数符合冻结预算，光学无 mouse tracking、参数动画、动态 seed、RAF update 或 JS capability branching。现有 Indicator geometry / Preview playback RAF 与 Canvas pointermove 属于测量、播放或编辑，不驱动光学参数。
+
+统一 off hook 仅移除 Lens/Dock 光学伪元素；Preview 高光保留。CSS @supports 仅证明语法，不证明实际滤镜执行。Reduced Motion 保留六个 duration token 0ms 和 Lens stretch animation none；本轮无 aria、button、focus/tab order、pointer-events 架构改动。
+
+性能文档提供 1440×900 / 1000×900、Full / Fallback / Reduced Motion / Reduced Motion + Fallback、High DPR、Complex Junction + Drawer + Preview + Tool switching 的人工矩阵与 A–J 步骤，证据模板、截图/trace 索引、通过/失败标准和优先撤回 Dock、保留 Lens 的回滚顺序。所有运行时矩阵及证据状态保持 PENDING；本轮不执行回滚。
+
+静态质量门禁与构建资产审计全部通过：typecheck、lint、format:check、test:run、build、git diff --check；29 test files / 174 tests 未减少。独立 `liquid-refraction-EJ0jxXGL.svg` 与源 SVG 一致，仅 Lens / Dock 两个 filter，构建 CSS 保留两个 fragment，无 Preview fragment、Data URI 或残留 ?no-inline。git diff -- src 与 package 文件均为空；仅两份文档变更，UTF-8 无 BOM / LF。Browser Validation / Performance Trace NOT PERFORMED BY DESIGN：不打开浏览器、不启动 dev 页面检查、不截图、不录屏、不执行 DevTools/headless/benchmark/FPS/GPU 工具，也不新增依赖。
+
+M7C Static Readiness DONE；Performance Budget DONE；Final Acceptance Procedure DONE；Browser Performance Validation PENDING；Final Manual Acceptance PENDING；M7 milestone / UI Migration v1 NOT CLOSED。后续用户完成 Full、Fallback、Reduced Motion、Responsive、High DPI、复杂场景、Console 与性能 trace 并全部通过后，才能另行追加 M7C PASS / M7 CLOSED / UI Migration v1 CLOSED。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。
