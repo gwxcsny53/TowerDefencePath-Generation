@@ -916,6 +916,24 @@ M7A Implementation DONE 仅表示静态折射运算路径、Fallback 与边界�
 
 下一轮必须确认 Full 真实背景位移、折射克制、图标清晰、Lens motion、快速 1→6→2→5、Fallback 与原 G3 一致、Reduced Motion、圆角裁切、资源加载和 Console、无明显卡顿；通过后另行授权才能进入 M7B。M7C 的性能预算和最终验收仍未开始。
 
+### M7A Browser Acceptance
+
+按用户提供的人工验收结果，M7A Full/Fallback optical refraction manually validated：Real Optical Refraction、Fallback、Rapid Tool Switching 和 Validation Drawer Combination 均 PASS。M7A Implementation DONE；Browser Optical Validation PASS。上方实现轮的 Browser Validation PENDING 保留为历史记录；本轮未重新执行光学或性能验收。
+
+### Responsive Acceptance Fix（2026-09-30）
+
+Before M7B, narrow overlay mode fixes ToolDock visibility by shifting the Dock into the remaining visible Canvas region instead of changing z-index.
+
+基线为 `1f12dc02b26cb23a90c3235bc791d2735c172f78`。原 ToolDock 固定居中于整个 Canvas，左右 280px Overlay 会遮住核心工具；本轮仅把 EditorView 已有的互斥 Overlay local state 映射为 ToolDock class。在 `≤1099px` 下，Level Overlay 对应 X = +140px，Inspector Overlay 对应 X = -140px；无 Overlay 时 X = 0，`≥1100px` 始终保持 X = 0。主要支持范围仍为 900–1099px，不扩展移动端设计。
+
+新增 `--tool-dock-shift-x` 与既有 `--tool-dock-shift-y` 共用一个 `translate3d`，因此 Drawer + Level / Inspector 可同时保留横向避让和纵向上移。继续使用既有 transform transition 与 Reduced Motion token。Overlay 状态机、z-index、ToolPalette internals、Tooltip、Pointer、键盘事件、LiquidIndicator、M6 Motion、M7A Filter / Fallback、Route Preview、Canvas、Renderer 和 Store 保持不变；未新增 JS geometry。
+
+Responsive fix Implementation DONE；typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部通过，29 test files / 174 tests 未减少。Browser Validation PENDING / NOT PERFORMED BY DESIGN：本轮不截图、不录屏、不执行 Viewport Matrix、Performance Trace 或 Refraction A/B。
+
+下一轮人工验收：1000×900 下的 Level Overlay、Inspector Overlay、Overlay switch、Drawer + Level Overlay、Drawer + Inspector Overlay、Full Refraction、Fallback Refraction 和 Rapid Tool switch。Responsive 人工复测通过后再决定是否授权 M7B。
+
+M1–M6.5 CLOSED；M7B remains NOT STARTED；M7C NOT STARTED。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。

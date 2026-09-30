@@ -1,4 +1,5 @@
 .tool-dock {
+  --tool-dock-shift-x: 0px;
   --tool-dock-shift-y: 0px;
 
   position: absolute;
@@ -18,7 +19,7 @@
   box-shadow: var(--shadow-floating);
   -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
   backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
-  transform: translate3d(-50%, var(--tool-dock-shift-y), 0);
+  transform: translate3d(calc(-50% + var(--tool-dock-shift-x)), var(--tool-dock-shift-y), 0);
   transition: transform var(--motion-panel) var(--ease-standard);
 }
 
@@ -456,6 +457,14 @@ button.validation-issue:focus-visible {
 }
 
 @media (max-width: 1099px) {
+  .tool-dock--level-overlay-open {
+    --tool-dock-shift-x: 140px;
+  }
+
+  .tool-dock--inspector-overlay-open {
+    --tool-dock-shift-x: -140px;
+  }
+
   .route-preview-overlay {
     top: 48px;
   }

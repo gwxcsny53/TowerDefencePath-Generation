@@ -280,7 +280,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
         />
         <div class="editor-floating-ui-layer">
           <ToolPalette
-            :class="{ 'tool-dock--drawer-open': isValidationDrawerOpen }"
+            :class="{
+              'tool-dock--drawer-open': isValidationDrawerOpen,
+              'tool-dock--level-overlay-open': isLevelOverlayOpen,
+              'tool-dock--inspector-overlay-open': isInspectorOverlayOpen,
+            }"
             :active-tool="activeTool"
             @select-tool="editorStore.setActiveTool"
           />
