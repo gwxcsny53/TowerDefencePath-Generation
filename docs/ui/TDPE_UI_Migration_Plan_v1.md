@@ -965,6 +965,40 @@ typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部
 
 后续人工验收需确认真实弱背景位移、Dock 与 Lens 强弱层级、正常背景不抢眼、圆角无 bleed、Tooltip 无 clipping、快速 1→6→2→5、Level / Inspector Overlay、Validation Drawer 及组合状态、Full/Fallback、Reduced Motion、Console 和无明显卡顿。人工验收通过并另行授权前，禁止开始 M7B-2；M7C 仍未开始。
 
+### M7B-1 Manual Acceptance
+
+按用户本轮执行计划提供的人工结果，M7B-1 Implementation PASS / Manual Acceptance PASS，阶段 CLOSED；本轮不重新执行人工验收。上方 M7B-1 Browser Validation PENDING 保留为实现轮历史记录。
+
+### M7B-2 Route Preview Weak Refraction（2026-09-30）
+
+#### 当前授权与阶段状态
+
+基线为 `046f8d27045a93cd1fbe1be635fec96c25330e2d`（`main`）。M1–M6.5、M7A、Responsive Fix、M7B-1 CLOSED；M7B-2 START，仅授权 `.route-preview-overlay` 外层 G2 Dense Surface。Implementation DONE（静态实现完成）；Browser Validation PENDING。M7C NOT STARTED；M7 milestone closed: NO。Primary Action / Toggle / Slider 未开始；不自动扩展第四个 optical consumer。
+
+#### Route Preview Optical Recipe
+
+- 同一 `liquid-refraction.svg` 只在 `<defs>` 追加第三个静态 filter `route-preview-refraction`。既有 Lens scale 3 / Dock scale 1 及其完整 filter 内容冻结。
+- Preview region 为 x/y -20%、width/height 140%，objectBoundingBox / userSpaceOnUse / sRGB；fractalNoise、baseFrequency `0.018 0.022`、numOctaves 1、seed 7、独立 result `route-preview-refraction-map`。SourceGraphic 经 R/G displacement，scale 0.5，每轴理论最大 ±0.25 CSS px，二维约 0.35px。无额外 primitive、SVG animation 或外部资源。
+- 独立 CSS URL capability gate 中，`::before` 增加 backdrop displacement，`::after` 增加静态 inset specular，左上 alpha 0.04、右下 0.01。参数层级为 Lens 3 / Dock 1 / Preview 0.5，高光分别为 0.16 / 0.04、0.07 / 0.015、0.04 / 0.01；实际视觉强弱待人工验收。
+- 两个伪元素 absolute / inset 0 / border-radius inherit / pointer-events none，以 `clip-path: inset(0 round var(--radius-floating))` 自裁切，父层 overflow 不改。
+- Preview 前景是正常绘制的 Grid 内容。伪元素采用 z-index -1，利用父层已有 backdrop-filter 创建的 stacking context，在父背景之后、前景之前绘制，避免 z0 层采样已绘制的文字、ProgressBar 或按钮。不新增 isolation、parent stacking 属性、内容 z-index 或 wrapper，也不对前景使用普通 filter。此层级实现仍需后续浏览器确认。
+
+#### Full / Fallback 与行为冻结
+
+原 G2 Dense background、blur、saturation、border、shadow、width、padding、gap、top/right 和 `≤1099px` top 48px 全部保留。统一 `data-visual-refraction="off"` hook 支持祖先及 Preview 自身属性；祖先 hook 同时关闭 Lens / Dock / Preview 共六个光学伪元素，不新增属性、默认模板开关、Store、设置 UI 或持久化。
+
+CSS 继续使用 Vite 相对 asset 和 `?no-inline`。语法 gate 不证明资源加载或真实 SVG backdrop 执行；资源失败时原有 G2 Dense 仍保留，但静态 specular 可能继续存在，严格回退通过统一 hook 移除增强。
+
+RoutePreviewOverlay.vue 的 props、emits、computed、template、playbackTitle、timing、progress、stop/replay/close，以及 UiButton / UiProgressBar 全部不改动。原 enter/leave duration、easing、transform、opacity 与 Reduced Motion 规则冻结；伪元素自然随 Panel 运动，不新增光学动画、播放状态驱动、进度驱动、鼠标追踪、hover 增强或 Reduced Motion selector。
+
+修改仅限现有 CSS、SVG 和本计划。ToolPalette、UiLiquidIndicator、useLiquidIndicator、EditorView、motion.css、tokens.css、glass.css、Validation、LevelTree、PropertyPanel、Route Preview playback、Canvas、Renderer、Store、Domain、Editor、IO、Persistence 和 package 文件无改动。新增 DOM 0、JS optical update 0、依赖 0；Full 最多三个 optical consumers。未抽象 UiRefractionSurface 或 useVisualCapability。
+
+#### 验证与阶段退出
+
+typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部通过；29 test files / 174 tests 未减少。生产构建输出独立 `liquid-refraction-Crip1UKx.svg`，内容与源 SVG 一致，三个 filter ID 均存在；构建 CSS 的两种 backdrop 属性均保留三个 fragment，无 Data URI 或残留 `?no-inline`。移除本轮新增块并还原 hook 扩展后，CSS 与基线逐字一致；SVG 前两个 filter 逐字一致。冻结文件检查通过，修改仅限三个允许文件，保留原 UTF-8 无 BOM / LF。Browser Validation / Performance Validation NOT PERFORMED BY DESIGN；本轮不打开浏览器、不截图、不录屏、不做 Full/Fallback A/B、条纹测试、viewport matrix 或 performance/GPU trace。
+
+后续人工验收确认真实极弱背景位移、Lens > Dock > Preview、文字/数字/ProgressBar/按钮稳定清晰、圆角裁切与层级、Full/Fallback、playing → stopped / replay / close、enter/leave、1440×900 / 1000×900、Validation Drawer 组合、Reduced Motion、Console 和主观流畅度。M7B-2 人工验收通过并另行授权前禁止进入 M7C；不自动追加 M7B-3 或其他消费者。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。
