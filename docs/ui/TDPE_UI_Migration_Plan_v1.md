@@ -874,6 +874,48 @@ M6.5 的后续 Marker pass 将 Spawn 绘制为绿色圆形底形加 MapPin-like 
 
 # M7 Optical Refraction / Performance
 
+## M7A Tool Lens Refraction Prototype（2026-09-30）
+
+### 当前授权与状态
+
+按 M7A 执行计划，M1–M6.5 CLOSED，M6.5 baseline frozen，基线为 `ebdfba85ab1750f688edefbbbd6a14e7ff766236`。M7A started；本节是当前状态，前文 M6 / M6.5 的暂停和待验收文字保留为历史记录，不代表本轮重新进行这些阶段的验收。
+
+本轮仅实现 Tool shared active lens：`UiLiquidIndicator variant="tool"` 的 Surface。M7B NOT STARTED；M7C NOT STARTED。下方 M7 总体涉及文件、扩展步骤、性能预算和浏览器矩阵仅为后续规划，均不属于本轮执行范围；不得由此扩散到 ToolDock、Route Preview、Primary Action 或其他消费者。
+
+### 实现与完整回退
+
+- 原有 `--glass-g3-background`、`--glass-g3-border`、`--shadow-liquid` 始终保留，Full 只叠加增强。ToolDock G2、Level Indicator、图标颜色与层级不变。
+- Tool Surface 新增两个纯 CSS 伪元素：`::before` 通过 `backdrop-filter: url(...)` 对后方采样进行真实位移运算，`::after` 提供静态左上边缘高光。未使用普通 `filter` 扭曲前景或以 blur/gradient 冒充折射。
+- `src/ui/assets/filters/liquid-refraction.svg` 只有 `feTurbulence` 与 `feDisplacementMap` 两个节点。低频单 octave，固定 seed 7，scale 3，R/G 通道：静止时每轴理论最大偏移 ±1.5 CSS px，二维最大约 2.12px；现有 1.16 倍横向 stretch 下二维上界约 2.30px。实际可见强度待浏览器确认。
+- Filter region 四侧各扩展 20%。Surface 使用圆角与 `overflow: hidden` 裁切 optical children，自身原有外阴影仍由 Surface 绘制。没有扩大布局、点击区域或测量尺寸。
+- 高光采用 inset shadow，左上 alpha 0.16、右下 alpha 0.04，方向和参数固定。没有鼠标追踪、噪声覆盖、放大、RGB split 或滤镜动画。
+- 两个伪元素均 `pointer-events: none`，沿用 Indicator 的 `aria-hidden="true"`；Tool Button / Icon 是 z2 的兄弟节点，不在 filtered subtree 中，Lens 保持 z1、Tooltip 保持 z3。
+- 仍只有一个共享 Tool Lens、一个背景滤镜消费者；没有新增 DOM、组件、工具函数、业务状态、依赖或每帧光学参数更新。
+
+### Capability 与开发级强制回退
+
+CSS `@supports` 检查实际使用的 `backdrop-filter: url(...)` / `-webkit-backdrop-filter: url(...)` 语法，增强只在 gate 内定义；两种属性均提供。没有 UA、浏览器版本、OS/GPU 分支或 JS capability helper。
+
+`@supports` 不能检测 SVG 资源加载成功、具体 primitive 的执行能力或实际 backdrop 渲染。因此通过语法 gate 不等于 Full 已获验收；SVG 忽略/失败时底层 G3 仍保留，但 gate 内的静态高光可能继续存在。严格对比当前 G3 时，使用强制回退 hook 同时移除两个伪元素。Safari / Firefox / Chrome 的 Full 能力均不得仅凭静态检查宣布通过。
+
+后续在 DevTools 给 `html`、`body`、应用 root 或 Tool Indicator 添加 `data-visual-refraction="off"` 即可禁用两个增强层；移除属性恢复自动 gate。此 hook 不接 Store、设置 UI、localStorage 或 persistence，不需要修改 EditorView。
+
+CSS URL 使用 Vite 管理的相对 SVG asset 和 `?no-inline`，保留 `#tool-lens-refraction` fragment，生产构建应输出独立哈希 SVG 文件；不使用本地磁盘 URL 或 Data URI。构建解析通过仍不代表浏览器已加载并执行该滤镜。
+
+### Motion 与冻结边界
+
+Outer `translate3d`、Inner `scaleX`、280ms 时长、rapid retarget 与 geometry 完全沿用 M6；未修改 `ToolPalette.vue`、`useLiquidIndicator.ts`、`motion.css` 或 `UiLiquidIndicator.vue`。Reduced Motion 保留原有零时长和 stretch 禁用规则，静态折射/高光可以保留。没有新增 JS Reduced Motion 分支。
+
+ToolDock、Level Indicator、TopBar、Inspector、Validation、Route Preview、Dialog、Popover、Input、Canvas、Renderer、Store、Domain、IO 和 Persistence 均不改动。未创建 `UiRefractionSurface.vue`、`useVisualCapability.ts` 或 Performance Budget 文档。
+
+### 验证与阶段退出
+
+本轮 typecheck、lint、format:check、test:run、build 和 `git diff --check` 全部通过；29 test files / 174 tests 全绿且未减少。生产构建输出独立 `liquid-refraction-CKtaPQmt.svg`，内容与源 SVG 一致；构建 CSS 的两种 backdrop 属性均保留 `#tool-lens-refraction`，无 Data URI 或残留 `?no-inline`。冻结文件边界检查通过，变更仅为本样式文件、本计划文档和新增 SVG。
+
+M7A Implementation DONE 仅表示静态折射运算路径、Fallback 与边界实现完成。Browser Validation PENDING / NOT PERFORMED BY DESIGN；Performance Validation NOT PERFORMED BY DESIGN。本轮不截图、不录屏、不做 Full/Fallback 人工视觉判定、多浏览器测试或 GPU/Performance trace，不声称 60fps、无 Paint 回归或性能通过。M7 milestone closed: NO。
+
+下一轮必须确认 Full 真实背景位移、折射克制、图标清晰、Lens motion、快速 1→6→2→5、Fallback 与原 G3 一致、Reduced Motion、圆角裁切、资源加载和 Console、无明显卡顿；通过后另行授权才能进入 M7B。M7C 的性能预算和最终验收仍未开始。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。

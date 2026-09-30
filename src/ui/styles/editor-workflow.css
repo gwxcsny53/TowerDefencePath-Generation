@@ -109,10 +109,46 @@
 }
 
 .ui-liquid-indicator--tool .ui-liquid-indicator__surface {
+  position: relative;
+  overflow: hidden;
   background: var(--glass-g3-background);
   border: 1px solid var(--glass-g3-border);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-liquid);
+}
+
+/* M7A: URL syntax support is a gate, not proof of SVG backdrop rendering. */
+@supports (
+  (backdrop-filter: url('#tool-lens-refraction')) or
+    (-webkit-backdrop-filter: url('#tool-lens-refraction'))
+) {
+  .ui-liquid-indicator--tool .ui-liquid-indicator__surface::before,
+  .ui-liquid-indicator--tool .ui-liquid-indicator__surface::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .ui-liquid-indicator--tool .ui-liquid-indicator__surface::before {
+    -webkit-backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#tool-lens-refraction');
+    backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#tool-lens-refraction');
+  }
+
+  .ui-liquid-indicator--tool .ui-liquid-indicator__surface::after {
+    box-shadow:
+      inset 1px 1px 0 rgb(255 255 255 / 16%),
+      inset -1px -1px 0 rgb(255 255 255 / 4%);
+  }
+}
+
+/* DevTools acceptance hook on html, body, root, or the indicator itself. */
+[data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::before,
+[data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::after,
+.ui-liquid-indicator--tool[data-visual-refraction='off'] .ui-liquid-indicator__surface::before,
+.ui-liquid-indicator--tool[data-visual-refraction='off'] .ui-liquid-indicator__surface::after {
+  content: none;
 }
 
 .ui-liquid-indicator--tool .ui-liquid-indicator__surface.is-stretching {
