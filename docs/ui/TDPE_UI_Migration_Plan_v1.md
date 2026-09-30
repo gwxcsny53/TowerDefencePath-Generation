@@ -727,6 +727,12 @@ M5 完成后，1440×900 的主要结构应与 Design System 基线一致，不�
 
 # M6 Liquid Motion
 
+## M6 实施状态（2026-09-30）
+
+本轮已接入共享 Tool Lens（拉伸、移动、轻微越位与稳定）、共享 Level Active Indicator、ToolDock 局部 Tooltip 淡入淡出，以及 Validation Drawer、Route Preview、UiDialog 和 UiPopover 的双向进出场。Drawer 打开时 ToolDock 通过 transform 同步上移。所有运动使用统一时长和 easing token，并通过 `prefers-reduced-motion` 直接到达相同终态；业务事件仍立即执行。
+
+Toggle / Slider 当前无真实消费者，本轮未实现。Desktop side-panel collapse 当前不存在产品状态，本轮未新增。Optical Refraction 仍属于 M7。M6 正式浏览器验收留待后续，实施完成不等于里程碑关闭。
+
 ## 目标状态
 
 在 M1–M5 已稳定的布局和控件之上增加有意义的 Motion：Tool active lens、Level active indicator、Toggle/Slider thumb、Panel/Drawer/Dialog、Popover 和 Route Preview 的状态过渡。

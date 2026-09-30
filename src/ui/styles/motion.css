@@ -34,5 +34,6 @@
     --motion-panel: 0ms;
     --motion-liquid: 0ms;
     --motion-modal: 0ms;
+    --motion-exit: 0ms;
   }
 }

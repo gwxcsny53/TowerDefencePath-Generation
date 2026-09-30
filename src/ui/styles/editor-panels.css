@@ -62,7 +62,21 @@
 }
 
 .level-panel__content {
+  position: relative;
   padding: var(--space-3) var(--space-2);
+}
+
+.level-panel__content .ui-liquid-indicator {
+  z-index: 0;
+}
+
+.ui-liquid-indicator--level.is-moving {
+  transition: transform var(--motion-panel) var(--ease-standard);
+}
+
+.ui-liquid-indicator--level .ui-liquid-indicator__surface {
+  background: var(--surface-active);
+  border-radius: var(--radius-control);
 }
 
 .level-panel__chapter + .level-panel__chapter {
@@ -80,6 +94,8 @@
 
 .level-panel__row {
   display: flex;
+  position: relative;
+  z-index: 1;
   align-items: center;
   min-width: 0;
   min-height: 30px;
@@ -93,7 +109,7 @@
 
 .level-panel__row--active,
 .level-panel__row--active:hover {
-  background: var(--surface-active);
+  background: transparent;
 }
 
 .level-panel__select {

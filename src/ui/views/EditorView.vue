@@ -302,26 +302,30 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
               属性
             </button>
           </div>
-          <RoutePreviewOverlay
-            v-if="routePreviewRun !== null && routePreviewFrame !== null"
-            :result="routePreviewRun.result"
-            :frame="routePreviewFrame"
-            :playback-status="playbackStatus"
-            :move-seconds-per-cell="routePreviewRun.moveSecondsPerCell"
-            @stop="stopRoutePreview"
-            @replay="editorStore.startRoutePreview"
-            @close="closeRoutePreview"
-          />
+          <Transition name="route-preview-motion">
+            <RoutePreviewOverlay
+              v-if="routePreviewRun !== null && routePreviewFrame !== null"
+              :result="routePreviewRun.result"
+              :frame="routePreviewFrame"
+              :playback-status="playbackStatus"
+              :move-seconds-per-cell="routePreviewRun.moveSecondsPerCell"
+              @stop="stopRoutePreview"
+              @replay="editorStore.startRoutePreview"
+              @close="closeRoutePreview"
+            />
+          </Transition>
         </div>
         <div class="editor-drawer-layer">
-          <ValidationPanel
-            v-show="isValidationDrawerOpen"
-            :status="validationStatus"
-            :issues="currentValidationIssues"
-            :focused-issue="focusedValidationIssue"
-            @focus-issue="editorStore.focusValidationIssue"
-            @close="isValidationDrawerOpen = false"
-          />
+          <Transition name="validation-drawer-motion">
+            <ValidationPanel
+              v-show="isValidationDrawerOpen"
+              :status="validationStatus"
+              :issues="currentValidationIssues"
+              :focused-issue="focusedValidationIssue"
+              @focus-issue="editorStore.focusValidationIssue"
+              @close="isValidationDrawerOpen = false"
+            />
+          </Transition>
         </div>
       </section>
 

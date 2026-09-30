@@ -40,9 +40,10 @@
 }
 
 .editor-canvas-stage {
-  --validation-drawer-height: min(300px, 40%);
+  --validation-drawer-height: min(300px, 40cqh);
 
   position: relative;
+  container-type: size;
   z-index: var(--z-canvas);
   min-width: 0;
   min-height: 0;

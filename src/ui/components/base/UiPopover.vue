@@ -69,13 +69,15 @@ defineExpose({ open, close, toggle });
 <template>
   <div ref="rootElement" class="ui-popover">
     <slot name="trigger" :open="open" :toggle="toggle" />
-    <div
-      v-if="open"
-      ref="contentElement"
-      class="ui-popover__content"
-      :class="{ 'ui-popover__content--top': resolvedPlacement === 'top' }"
-    >
-      <slot :close="close" />
-    </div>
+    <Transition name="ui-popover-motion">
+      <div
+        v-if="open"
+        ref="contentElement"
+        class="ui-popover__content"
+        :class="{ 'ui-popover__content--top': resolvedPlacement === 'top' }"
+      >
+        <slot :close="close" />
+      </div>
+    </Transition>
   </div>
 </template>

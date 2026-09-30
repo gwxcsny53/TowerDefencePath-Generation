@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onMounted, onUpdated, ref, watch } from 'vue';
 
 import { getProjectChapters } from '@/editor';
 import type { EditorProject, LevelAddress } from '@/editor';
@@ -7,6 +7,8 @@ import { Plus } from 'lucide-vue-next';
 import DeleteLevelDialog from './DeleteLevelDialog.vue';
 import LevelActionsMenu from './LevelActionsMenu.vue';
 import UiIconButton from './base/UiIconButton.vue';
+import UiLiquidIndicator from './base/UiLiquidIndicator.vue';
+import { useLiquidIndicator } from '@/ui/composables/useLiquidIndicator';
 
 const props = defineProps<{
   project: EditorProject;
@@ -23,6 +25,24 @@ const emit = defineEmits<{
 const chapters = computed(() => getProjectChapters(props.project));
 const isDeleteDialogOpen = ref(false);
 const canDelete = computed(() => props.project.levels.length > 1);
+const content = ref<HTMLElement | null>(null);
+const indicator = useLiquidIndicator(content);
+const { x, y, width, height, ready, motionRevision } = indicator;
+function measureActiveLevel(): void {
+  indicator.setTarget(
+    content.value?.querySelector<HTMLElement>('.level-panel__row--active') ?? null,
+  );
+}
+onMounted(measureActiveLevel);
+onUpdated(measureActiveLevel);
+watch(
+  () => [props.activeLevelAddress.chapter, props.activeLevelAddress.stage],
+  async () => {
+    await nextTick();
+    measureActiveLevel();
+  },
+  { flush: 'post' },
+);
 function isActive(address: LevelAddress): boolean {
   return (
     address.chapter === props.activeLevelAddress.chapter &&
@@ -59,7 +79,16 @@ function confirmDelete(): void {
       </UiIconButton>
     </header>
 
-    <div class="level-panel__content">
+    <div ref="content" class="level-panel__content">
+      <UiLiquidIndicator
+        :x="x"
+        :y="y"
+        :width="width"
+        :height="height"
+        :ready="ready"
+        :motion-revision="motionRevision"
+        variant="level"
+      />
       <section v-for="chapter in chapters" :key="chapter.chapter" class="level-panel__chapter">
         <h3>第 {{ chapter.chapter }} 章</h3>
         <div

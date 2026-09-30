@@ -83,11 +83,13 @@
   --motion-fast: 100ms;
   --motion-normal: 180ms;
   --motion-panel: 220ms;
-  --motion-liquid: 260ms;
+  --motion-liquid: 280ms;
   --motion-modal: 180ms;
+  --motion-exit: 140ms;
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-liquid: cubic-bezier(0.2, 1.12, 0.3, 1);
 
   /* Z-index */
   --z-workspace: 0;

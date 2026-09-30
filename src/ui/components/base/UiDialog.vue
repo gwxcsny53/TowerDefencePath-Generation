@@ -42,7 +42,7 @@ watch(
     if (open) {
       previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       await nextTick();
-      focusDialogEntry();
+      if (props.open) focusDialogEntry();
       return;
     }
     if (wasOpen && previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
@@ -56,27 +56,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeyDown));
 </script>
 
 <template>
-  <div v-if="open" class="ui-dialog-backdrop" role="presentation">
-    <section
-      ref="dialogElement"
-      class="ui-dialog"
-      :class="`ui-dialog--${size}`"
-      role="dialog"
-      aria-modal="true"
-      :aria-labelledby="titleId"
-      tabindex="-1"
-    >
-      <header class="ui-dialog__header">
-        <slot name="header">
-          <h2 :id="titleId" class="ui-dialog__title">{{ title }}</h2>
-        </slot>
-      </header>
-      <div class="ui-dialog__content">
-        <slot />
-      </div>
-      <footer v-if="slots.footer" class="ui-dialog__footer">
-        <slot name="footer" />
-      </footer>
-    </section>
-  </div>
+  <Transition name="ui-dialog-motion">
+    <div v-if="open" class="ui-dialog-backdrop" role="presentation">
+      <section
+        ref="dialogElement"
+        class="ui-dialog"
+        :class="`ui-dialog--${size}`"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="titleId"
+        tabindex="-1"
+      >
+        <header class="ui-dialog__header">
+          <slot name="header">
+            <h2 :id="titleId" class="ui-dialog__title">{{ title }}</h2>
+          </slot>
+        </header>
+        <div class="ui-dialog__content">
+          <slot />
+        </div>
+        <footer v-if="slots.footer" class="ui-dialog__footer">
+          <slot name="footer" />
+        </footer>
+      </section>
+    </div>
+  </Transition>
 </template>
