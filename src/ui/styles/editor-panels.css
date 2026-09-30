@@ -103,6 +103,10 @@
   border-radius: var(--radius-control);
 }
 
+.level-panel__row--active {
+  z-index: var(--z-floating);
+}
+
 .level-panel__row:hover {
   background: var(--surface-hover);
 }
