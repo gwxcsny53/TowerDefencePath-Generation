@@ -172,34 +172,6 @@
   }
 }
 
-/* M7B-2: the existing backdrop stacking context keeps optics below foreground content. */
-@supports (
-  (backdrop-filter: url('#route-preview-refraction')) or
-    (-webkit-backdrop-filter: url('#route-preview-refraction'))
-) {
-  .route-preview-overlay::before,
-  .route-preview-overlay::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    border-radius: inherit;
-    clip-path: inset(0 round var(--radius-floating));
-    pointer-events: none;
-  }
-
-  .route-preview-overlay::before {
-    -webkit-backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#route-preview-refraction');
-    backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#route-preview-refraction');
-  }
-
-  .route-preview-overlay::after {
-    box-shadow:
-      inset 1px 1px 0 rgb(255 255 255 / 4%),
-      inset -1px -1px 0 rgb(255 255 255 / 1%);
-  }
-}
-
 /* DevTools acceptance hook on ancestors or an optical consumer itself. */
 [data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::before,
 [data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::after,
@@ -208,11 +180,7 @@
 [data-visual-refraction='off'] .tool-dock::before,
 [data-visual-refraction='off'] .tool-dock::after,
 .tool-dock[data-visual-refraction='off']::before,
-.tool-dock[data-visual-refraction='off']::after,
-[data-visual-refraction='off'] .route-preview-overlay::before,
-[data-visual-refraction='off'] .route-preview-overlay::after,
-.route-preview-overlay[data-visual-refraction='off']::before,
-.route-preview-overlay[data-visual-refraction='off']::after {
+.tool-dock[data-visual-refraction='off']::after {
   content: none;
 }
 
@@ -424,7 +392,10 @@ button.validation-issue:focus-visible {
   background: var(--glass-g2-dense-background);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-floating);
-  box-shadow: var(--shadow-floating);
+  box-shadow:
+    var(--shadow-floating),
+    inset 1px 1px 0 rgb(255 255 255 / 4%),
+    inset -1px -1px 0 rgb(255 255 255 / 1%);
   -webkit-backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
   backdrop-filter: blur(var(--glass-g2-blur)) saturate(var(--glass-g2-saturation));
 }

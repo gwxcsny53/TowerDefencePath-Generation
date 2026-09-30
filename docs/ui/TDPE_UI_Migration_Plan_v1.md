@@ -999,6 +999,42 @@ typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部
 
 后续人工验收确认真实极弱背景位移、Lens > Dock > Preview、文字/数字/ProgressBar/按钮稳定清晰、圆角裁切与层级、Full/Fallback、playing → stopped / replay / close、enter/leave、1440×900 / 1000×900、Validation Drawer 组合、Reduced Motion、Console 和主观流畅度。M7B-2 人工验收通过并另行授权前禁止进入 M7C；不自动追加 M7B-3 或其他消费者。
 
+### M7B-2 Visual Revision（2026-09-30）
+
+#### 人工结果与产品决定
+
+本轮基线为 `aeabc95458c3e1afde2e89e291ad619ebcfa4b25`（`main`）。按用户提供的人工结果，M7B-2 technical / functional manual validation PASS：真实 SVG backdrop displacement、播放逻辑、Full/Fallback、圆角、前景和按钮均正常。本轮不复测这些结果，上方技术实验记录完整保留。
+
+However visual A/B preferred fallback Dense Blur. Real displacement made Canvas Grid / Path details more apparent and reduced information-panel calmness. 用户视觉 A/B 更偏好原 G2 Dense Blur：背景更柔和稳定，文本和数据阅读层级更好。因此主动撤回 Preview 的真实折射，以信息清晰、背景安静和稳定玻璃材质为优先。
+
+**白名单代表“允许评估”，不代表“必须最终启用”。** Route Preview 是技术可行、视觉收益不足后撤回的成功 negative result，构成最终设计决定；不会为补足消费者数量而扩展 Primary Action / Toggle / Slider。
+
+#### 最终材质与白名单
+
+Route Preview removed from real refraction whitelist. Final material: G2 Dense blur + saturation + border + floating shadow + static 0.04 / 0.01 inset specular。
+
+- 完整删除 SVG 中 `route-preview-refraction`、独立 map、scale 0.5 及对应 turbulence / displacement，不保留 dead filter。
+- 完整删除 Preview 的 CSS optical `@supports` block、`::before` / `::after`、负 z-index 与 clip-path。Preview 不再增加 backdrop 采样或需要 capability gate。
+- 极弱静态高光直接并入 `.route-preview-overlay` 的普通 box-shadow：保留 `var(--shadow-floating)`，追加左上 alpha 0.04 / 右下 alpha 0.01 的 inset shadow。原 G2 Dense background、blur、saturation、border 和 radius 全部保留。
+- 统一 `data-visual-refraction="off"` hook 删除 Preview 的四个选择器，仅控制 Lens / Dock 的 displacement 和 specular enhancement。Preview 的静态高光属于普通 Material Recipe，不受 off 控制，也不新增其他 attribute。
+- 最终真实 Optical Refraction 白名单只有 Active Tool Lens（scale 3）与 ToolDock Surface（scale 1）；Route Preview 是无真实折射的 Dense Glass。Canvas、LevelPanel、Inspector、Validation list、普通 Input 和未单独授权的 Dialog 均不使用真实折射。
+
+#### 冻结边界与阶段状态
+
+Lens / Dock 的 SVG 内容、seed、frequency、octave、channels、region，以及 CSS gate、specular、motion、responsive / Drawer shift 和 Tooltip 全部冻结。RoutePreviewOverlay.vue、UiButton、UiProgressBar、props/emits、playback、timing、progress、stop/replay/close 完全不改动。
+
+Preview 的 enter/leave duration、easing、opacity、transform、width、padding、gap、top/right、`≤1099px` top 48px 和 Reduced Motion 规则不改。Canvas、Renderer、Store、Domain、Editor、IO、Persistence、其他组件和依赖文件不改。仅修改现有 CSS、SVG 和本计划。
+
+结构统计：真实 optical consumers 3 → 2，SVG filters 3 → 2，Preview pseudo layers 2 → 0，Preview displacement backdrop sampling 1 → 0。该结构变化不代表性能已验收，不声称 60fps 或 GPU 成本通过。
+
+M7A / Responsive Fix / M7B-1 CLOSED；M7B-2 Technical Prototype TECHNICALLY VALIDATED / Visual Acceptance REVISED；M7B-2 Visual Revision Implementation DONE / Manual Acceptance PENDING；M7C NOT STARTED；M7 milestone NOT CLOSED。
+
+#### 验证与后续人工验收
+
+Revision 的 typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部通过，29 test files / 174 tests 未减少。生产构建输出独立 `liquid-refraction-EJ0jxXGL.svg`，与源文件及 M7B-1 asset 一致，仅含 Lens / Dock；两个 filter 内容相对本轮 baseline 逐字不变。构建 CSS 保留 Lens / Dock fragment，Preview fragment 已删除，无 Data URI 或残留 `?no-inline`。除 Preview 普通 box-shadow 的两条 inset 高光和既有 hook 注释外，CSS 恢复为 M7B-1 内容；Motion / Responsive / Dense Base 和其他文件冻结检查通过。仅修改三个允许文件，保留 UTF-8 无 BOM / LF。Browser Validation / Performance Validation NOT PERFORMED BY DESIGN；本轮不打开浏览器、不截图、不录屏、不做 A/B、条纹测试、viewport matrix 或 performance/GPU trace。
+
+用户后续复测 Preview 背景恢复柔和 Dense Blur、Grid / Path 不再被 displacement 强化、高光克制、文字/数字/ProgressBar/按钮清晰、playing → stopped / replay / close、enter/leave、1000×900 / 1440×900、Validation Drawer 组合、Lens / Dock 折射正常、统一 off 只影响 Lens + Dock，以及 Console。Revision 人工通过前 M7B-2 / M7B 不关闭，不创建 M7B-3，禁止进入 M7C。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。
