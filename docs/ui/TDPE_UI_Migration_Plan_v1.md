@@ -934,6 +934,37 @@ Responsive fix Implementation DONE；typecheck、lint、format:check、test:run�
 
 M1–M6.5 CLOSED；M7B remains NOT STARTED；M7C NOT STARTED。
 
+### M7B-1 ToolDock Surface Weak Refraction（2026-09-30）
+
+#### 当前授权与阶段状态
+
+本轮基线为 `187771025c74e71f967a7e1cb41e97aeec0a3fec`（`main`）。按用户提供的执行计划，M1–M6.5 CLOSED；M7A Implementation CLOSED / Browser Validation PASS；Responsive Acceptance Fix CLOSED / Manual Acceptance PASS。这些人工验收结论来自用户，本轮不复测；上方 M7A 和 Responsive Fix 的历史记录全部保留。
+
+M7B-1 START，仅新增 `.tool-dock` 一个 G2 optical consumer。Implementation DONE（静态实现完成）；Browser Validation PENDING。M7B-2 Route Preview NOT STARTED；M7C NOT STARTED；M7 milestone closed: NO。下方 M7 总体规划不构成本轮扩展授权。
+
+#### Weak Refraction Recipe 与层级
+
+- 复用 `liquid-refraction.svg`，只在 `<defs>` 追加 `tool-dock-refraction`，不改动既有 `tool-lens-refraction` 的任何内容。Dock region 为 x/y -20%、width/height 140%，沿用 objectBoundingBox / userSpaceOnUse / sRGB。
+- Dock 使用 fractalNoise、baseFrequency `0.018 0.022`、numOctaves 1、seed 7、独立 result `tool-dock-refraction-map`，SourceGraphic 经 R/G 通道 displacement，scale 1。每轴理论最大偏移 ±0.5 CSS px，二维约 0.71px；Lens 保持 scale 3、seed 7，参数强度比约 33%，实际视觉层级待人工验收。
+- 独立 CSS URL capability gate 中，`.tool-dock::before` 仅对 backdrop 采样增加弱位移；`::after` 提供静态 inset specular，左上 alpha 0.07、右下 0.015，明显低于 Lens 的 0.16 / 0.04。没有普通 filter、额外 blur、RGB split、滤镜动画、hover 增强或鼠标追踪。
+- 两个伪元素均 absolute / inset 0 / border-radius inherit / z0 / pointer-events none，以 `clip-path: inset(0 round var(--radius-liquid))` 自行裁切。Dock 保持 `overflow: visible`；Lens z1、Tool Item z2、Tooltip z3 的层级不变，图标不进入滤镜子树。新增 DOM 0、JS optical update 0、依赖 0，Full 合计只有 Dock 与共享 Lens 两个 optical consumers。
+
+#### Full / Fallback 与冻结边界
+
+原有 G2 background、blur、saturation、border、shadow、尺寸、定位和 transform 完整保留。统一 `data-visual-refraction="off"` hook 同时移除 Dock 和 Lens 的 refraction / specular；支持祖先与 Dock 自身属性，不新增 Store、设置 UI、持久化或第二个 attribute。
+
+CSS URL 沿用 Vite 相对 asset / `?no-inline` 方式，分别引用两个 filter fragment。语法 gate 不证明资源加载或 SVG backdrop 的真实执行；资源失败时原有 G2 仍存在，gate 内静态 specular 可能保留，严格回退使用统一 hook。
+
+`--tool-dock-shift-x` / `--tool-dock-shift-y`、Level +140px / Inspector -140px、Drawer 上移、既有 motion 和 Reduced Motion 均冻结。伪元素自然随 Dock 移动，不新增 responsive / Drawer optical 特例、isolation、JS geometry 或 Reduced Motion 分支；静态 optics 可以保留。
+
+修改仅限 `editor-workflow.css`、现有 SVG 和本计划。ToolPalette、UiLiquidIndicator、useLiquidIndicator、motion.css、tokens.css、glass.css、EditorView、Route Preview、Validation、Canvas、Renderer、Store、Domain、IO、Persistence 和 package 文件全部不改动。未创建 UiRefractionSurface、useVisualCapability 或 Performance Budget。
+
+#### 验证与阶段退出
+
+typecheck、lint、format:check、test:run、build 与 `git diff --check` 全部通过，29 test files / 174 tests 未减少。生产构建输出独立 `liquid-refraction-EJ0jxXGL.svg`，内容与源 SVG 一致；两个 filter ID 均存在，构建 CSS 的两种 backdrop 属性分别保留两个 URL fragment，无 Data URI 或残留 `?no-inline`。M7A filter / CSS、Dock G2 base、Responsive / Drawer 规则和冻结文件边界检查通过。三份修改文件保留原有 UTF-8 无 BOM / LF。本轮按计划不打开浏览器、不截图、不录屏、不做 Full/Fallback A/B、条纹背景、viewport matrix 或 performance trace；Browser Validation / Performance Validation NOT PERFORMED BY DESIGN。
+
+后续人工验收需确认真实弱背景位移、Dock 与 Lens 强弱层级、正常背景不抢眼、圆角无 bleed、Tooltip 无 clipping、快速 1→6→2→5、Level / Inspector Overlay、Validation Drawer 及组合状态、Full/Fallback、Reduced Motion、Console 和无明显卡顿。人工验收通过并另行授权前，禁止开始 M7B-2；M7C 仍未开始。
+
 ## 目标状态
 
 在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。

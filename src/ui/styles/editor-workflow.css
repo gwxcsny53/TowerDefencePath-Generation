@@ -144,11 +144,43 @@
   }
 }
 
-/* DevTools acceptance hook on html, body, root, or the indicator itself. */
+/* M7B-1: preserve the G2 base and clip only the static optical layers. */
+@supports (
+  (backdrop-filter: url('#tool-dock-refraction')) or
+    (-webkit-backdrop-filter: url('#tool-dock-refraction'))
+) {
+  .tool-dock::before,
+  .tool-dock::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    border-radius: inherit;
+    clip-path: inset(0 round var(--radius-liquid));
+    pointer-events: none;
+  }
+
+  .tool-dock::before {
+    -webkit-backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#tool-dock-refraction');
+    backdrop-filter: url('../assets/filters/liquid-refraction.svg?no-inline#tool-dock-refraction');
+  }
+
+  .tool-dock::after {
+    box-shadow:
+      inset 1px 1px 0 rgb(255 255 255 / 7%),
+      inset -1px -1px 0 rgb(255 255 255 / 1.5%);
+  }
+}
+
+/* DevTools acceptance hook on html, body, root, Dock, or the indicator itself. */
 [data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::before,
 [data-visual-refraction='off'] .ui-liquid-indicator--tool .ui-liquid-indicator__surface::after,
 .ui-liquid-indicator--tool[data-visual-refraction='off'] .ui-liquid-indicator__surface::before,
-.ui-liquid-indicator--tool[data-visual-refraction='off'] .ui-liquid-indicator__surface::after {
+.ui-liquid-indicator--tool[data-visual-refraction='off'] .ui-liquid-indicator__surface::after,
+[data-visual-refraction='off'] .tool-dock::before,
+[data-visual-refraction='off'] .tool-dock::after,
+.tool-dock[data-visual-refraction='off']::before,
+.tool-dock[data-visual-refraction='off']::after {
   content: none;
 }
 
