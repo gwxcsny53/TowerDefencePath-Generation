@@ -70,7 +70,7 @@ export function renderSpawnMarker(
     surfaceColor,
     glyphColor,
     metrics.outlineWidth,
-    0.52,
+    0.38,
   );
 
   const size = metrics.glyphSize;
@@ -128,7 +128,7 @@ export function renderEndMarker(
     surfaceColor,
     glyphColor,
     metrics.outlineWidth,
-    0.52,
+    0.38,
   );
 
   const size = metrics.glyphSize;
@@ -192,24 +192,24 @@ function strokeTower(
   const x = center.x;
   const y = center.y;
   context.beginPath();
-  context.moveTo(x - size * 0.42, y - size * 0.16);
-  context.lineTo(x - size * 0.42, y - size * 0.44);
-  context.lineTo(x - size * 0.16, y - size * 0.44);
-  context.lineTo(x - size * 0.16, y - size * 0.28);
-  context.lineTo(x + size * 0.16, y - size * 0.28);
-  context.lineTo(x + size * 0.16, y - size * 0.44);
-  context.lineTo(x + size * 0.42, y - size * 0.44);
-  context.lineTo(x + size * 0.42, y - size * 0.16);
-  context.moveTo(x - size * 0.3, y - size * 0.16);
-  context.lineTo(x - size * 0.3, y + size * 0.44);
-  context.lineTo(x + size * 0.3, y + size * 0.44);
-  context.lineTo(x + size * 0.3, y - size * 0.16);
+  context.moveTo(x - size * 0.31, y - size * 0.12);
+  context.lineTo(x - size * 0.31, y - size * 0.44);
+  context.lineTo(x - size * 0.12, y - size * 0.44);
+  context.lineTo(x - size * 0.12, y - size * 0.25);
+  context.lineTo(x + size * 0.12, y - size * 0.25);
+  context.lineTo(x + size * 0.12, y - size * 0.44);
+  context.lineTo(x + size * 0.31, y - size * 0.44);
+  context.lineTo(x + size * 0.31, y - size * 0.12);
+  context.moveTo(x - size * 0.21, y - size * 0.12);
+  context.lineTo(x - size * 0.21, y + size * 0.44);
+  context.lineTo(x + size * 0.21, y + size * 0.44);
+  context.lineTo(x + size * 0.21, y - size * 0.12);
   context.stroke();
 
   if (size >= 9) {
     context.beginPath();
-    context.moveTo(x - size * 0.09, y + size * 0.44);
-    context.quadraticCurveTo(x, y + size * 0.04, x + size * 0.09, y + size * 0.44);
+    context.moveTo(x - size * 0.07, y + size * 0.44);
+    context.quadraticCurveTo(x, y + size * 0.04, x + size * 0.07, y + size * 0.44);
     context.stroke();
   }
 }
@@ -221,7 +221,7 @@ function strokeLock(
   lineWidth: number,
   color: string,
 ): void {
-  const size = side * 0.18;
+  const size = side * 0.16;
   const x = center.x + side * 0.2;
   const y = center.y - side * 0.2;
   const bodyWidth = size * 0.68;
@@ -253,7 +253,7 @@ export function renderTowerMarker(
     surfaceColor,
     lockAccent === undefined ? glyphColor : LOCKED_TOWER_OUTLINE,
     metrics.outlineWidth,
-    lockAccent === undefined ? 0.42 : 0.38,
+    lockAccent === undefined ? 0.28 : 0.24,
   );
 
   const glyphSize = metrics.towerSurfaceSize * 0.7;
