@@ -19,7 +19,7 @@
 
 迁移只改变视觉层、布局层、展示组件和表现动画，不借 UI 重构之机改造 Store、Domain、Editor Runtime、Persistence、Import/Export 数据契约或 Canvas 渲染语义。
 
-计划采用七个严格有序的 Milestone：
+计划采用八个严格有序的 Milestone：
 
 ```text
 M1 Foundation
@@ -33,6 +33,8 @@ M4 LevelPanel / Inspector / Junction
 M5 ToolDock / Validation / Route Preview
   ↓
 M6 Liquid Motion
+  ↓
+M6.5 Canvas Dark Theme
   ↓
 M7 Optical Refraction / Performance
 ```
@@ -110,6 +112,8 @@ M7 Optical Refraction / Performance
 - 一次性替换全部 UI 的大型 Rewrite。
 
 如 UI 组件无法在不改变上述范围的前提下完成，应停止该 Milestone，记录阻塞点，而不是扩大修改范围。
+
+M1–M6 不得修改 Renderer semantic theme。M6.5 是专项授权例外，仅允许调整视觉 palette，并把 Selection 颜色接入 `RenderTheme`；Renderer 的几何、绘制顺序、坐标和业务语义仍不得改变。M7 不再重设计 Canvas palette。
 
 ### 3.3 文件修改边界
 
@@ -834,11 +838,27 @@ M6 只实现运动语言，不实现 Optical Refraction。
 
 ---
 
+# M6.5 Canvas Dark Theme
+
+## 目标状态
+
+在 M6 与 M7 之间，将 Canvas Host、Grid 和现有地图语义色适配到最终深色背景。保留 Path 蓝、Spawn 绿、End 红、Tower 琥珀、Junction 紫/橙/红、Validation 红/黄及 Route Preview 青色的角色；Selection 颜色由 `RenderTheme` 提供。
+
+## 修改边界
+
+仅调整 `RenderTheme` 视觉值、Selection theme 接线、`MapCanvas.vue` 的样式和本计划文档。Canvas Host 使用 `--bg-canvas`，Grid Surface 略亮于 Host。Renderer 数值参数、绘制顺序、Viewport、Pointer/Grid、DPR、ResizeObserver、业务状态和 M6 Motion 保持不变；Canvas 不使用 Glass 或 Optical Refraction。
+
+## 验收门禁
+
+实施阶段执行 typecheck、lint、format:check、test:run、build 与 `git diff --check`。正式浏览器视觉和指针验收单独进行；实施完成不代表 M6.5 里程碑关闭。验收覆盖 Grid、Path、各 Marker、Selection、Validation、Route Preview、复杂 Junction、目标 viewport、高 DPR 和 Canvas 四角指针准确性。M6.5 的视觉对比与指针回归通过后才可进入 M7。
+
+---
+
 # M7 Optical Refraction / Performance
 
 ## 目标状态
 
-在基础视觉、布局、控件和运动均稳定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。
+在基础视觉、布局、控件和运动均稳定，且 M6.5 Dark Canvas Theme 已验收锁定后，为白名单内的小型 G2/G3 控件增加可渐进增强的 Optical Refraction；不支持完整能力时自动降级为 Blur + Transparent Surface + Border Highlight + Shadow。M7 不再承担 Canvas palette 重设计。
 
 M7 是增强层，不是完成基础 UI 的前置条件。
 

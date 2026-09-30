@@ -62,7 +62,7 @@ export class MapRenderer {
       this.theme,
     );
     renderJunctions(context, graph, level.junctions, viewport, this.theme);
-    renderSelection(context, options.selectedPosition, viewport);
+    renderSelection(context, options.selectedPosition, viewport, this.theme);
     renderValidation(
       context,
       options.validationIssues,

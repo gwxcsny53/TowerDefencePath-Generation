@@ -9,6 +9,7 @@ export interface RenderTheme {
   configuredJunctionFill: string;
   unconfiguredJunctionStroke: string;
   staleJunctionStroke: string;
+  selectionStroke: string;
   validationErrorFill: string;
   validationErrorStroke: string;
   validationWarningFill: string;
@@ -26,24 +27,25 @@ export interface RenderTheme {
 }
 
 export const DEFAULT_RENDER_THEME: Readonly<RenderTheme> = {
-  gridBackground: '#f8fafc',
-  gridLine: '#cbd5e1',
-  pathFill: '#93c5fd',
+  gridBackground: '#111923',
+  gridLine: '#2a3848',
+  pathFill: '#3d78b2',
   spawnFill: '#22c55e',
   endFill: '#ef4444',
-  towerFill: '#a16207',
-  lockedTowerFill: '#a8a29e',
-  configuredJunctionFill: '#8b5cf6',
+  towerFill: '#d18a16',
+  lockedTowerFill: '#667085',
+  configuredJunctionFill: '#a78bfa',
   unconfiguredJunctionStroke: '#f59e0b',
-  staleJunctionStroke: '#ef4444',
-  validationErrorFill: 'rgba(239, 68, 68, 0.14)',
-  validationErrorStroke: '#dc2626',
-  validationWarningFill: 'rgba(245, 158, 11, 0.14)',
-  validationWarningStroke: '#d97706',
-  validationFocusStroke: '#7f1d1d',
-  routePreviewStroke: 'rgba(8, 145, 178, 0.55)',
-  routePreviewMarkerFill: '#06b6d4',
-  routePreviewMarkerStroke: '#155e75',
+  staleJunctionStroke: '#f87171',
+  selectionStroke: '#76c4ff',
+  validationErrorFill: 'rgba(239, 68, 68, 0.20)',
+  validationErrorStroke: '#f87171',
+  validationWarningFill: 'rgba(245, 158, 11, 0.18)',
+  validationWarningStroke: '#fbbf24',
+  validationFocusStroke: '#fca5a5',
+  routePreviewStroke: 'rgba(73, 217, 232, 0.78)',
+  routePreviewMarkerFill: '#49d9e8',
+  routePreviewMarkerStroke: '#0e7490',
   gridLineWidth: 1,
   pathInset: 1,
   markerScale: 0.3,

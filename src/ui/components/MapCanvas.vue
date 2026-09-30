@@ -120,8 +120,8 @@ watch(() => props.routePreview, renderMap, { deep: true });
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #e2e8f0;
-  border: 1px solid var(--color-panel-border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-panel);
 }
 
@@ -131,7 +131,7 @@ canvas {
   height: 100%;
   border: 0;
   border-radius: inherit;
-  background: #e2e8f0;
+  background: var(--bg-canvas);
 }
 
 .map-placeholder {
@@ -141,7 +141,7 @@ canvas {
   place-content: center;
   gap: 0.375rem;
   padding: 1rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-align: center;
   pointer-events: none;
 }
@@ -152,7 +152,7 @@ canvas {
 }
 
 .map-placeholder p {
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
