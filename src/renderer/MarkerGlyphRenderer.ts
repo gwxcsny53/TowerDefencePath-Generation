@@ -1,10 +1,15 @@
 import type { CanvasPoint } from './RenderViewport';
 
+const LOCKED_TOWER_OUTLINE = '#667085';
+
 export interface MarkerGlyphMetrics {
   readonly cellSize: number;
   readonly surfaceSize: number;
+  readonly circleSurfaceSize: number;
+  readonly towerSurfaceSize: number;
   readonly glyphSize: number;
   readonly lineWidth: number;
+  readonly outlineWidth: number;
 }
 
 /** Keeps marker geometry relative to the existing cell-sized surface. */
@@ -13,8 +18,11 @@ export function getMarkerGlyphMetrics(cellSize: number, markerScale: number): Ma
   return {
     cellSize,
     surfaceSize,
-    glyphSize: surfaceSize * 0.52,
+    circleSurfaceSize: surfaceSize * 0.93,
+    towerSurfaceSize: surfaceSize * 0.97,
+    glyphSize: surfaceSize * 0.93 * 0.62,
     lineWidth: Math.min(2.25, Math.max(1.25, cellSize * 0.045)),
+    outlineWidth: Math.min(2, Math.max(1.25, cellSize * 0.04)),
   };
 }
 
@@ -25,16 +33,21 @@ function prepareGlyph(context: CanvasRenderingContext2D, color: string, lineWidt
   context.lineJoin = 'round';
 }
 
-function fillCircle(
+function drawCircleSurface(
   context: CanvasRenderingContext2D,
   center: Readonly<CanvasPoint>,
-  radius: number,
-  color: string,
+  diameter: number,
+  fillColor: string,
+  strokeColor: string,
+  strokeWidth: number,
 ): void {
-  context.fillStyle = color;
+  context.fillStyle = fillColor;
+  context.strokeStyle = strokeColor;
+  context.lineWidth = strokeWidth;
   context.beginPath();
-  context.arc(center.x, center.y, radius, 0, Math.PI * 2);
+  context.arc(center.x, center.y, Math.max(0, (diameter - strokeWidth) / 2), 0, Math.PI * 2);
   context.fill();
+  context.stroke();
 }
 
 export function renderSpawnMarker(
@@ -46,43 +59,49 @@ export function renderSpawnMarker(
 ): void {
   context.save();
   context.globalAlpha = 1;
-  fillCircle(context, center, metrics.surfaceSize / 2, surfaceColor);
+  drawCircleSurface(
+    context,
+    center,
+    metrics.circleSurfaceSize,
+    surfaceColor,
+    glyphColor,
+    metrics.outlineWidth,
+  );
 
   const size = metrics.glyphSize;
-  if (size >= 6) {
+  if (size >= 7) {
     prepareGlyph(context, glyphColor, metrics.lineWidth);
     const x = center.x;
-    const y = center.y - size * 0.02;
+    const y = center.y;
     context.beginPath();
-    context.moveTo(x, y - size * 0.36);
+    context.moveTo(x, y + size * 0.48);
     context.bezierCurveTo(
-      x + size * 0.24,
-      y - size * 0.36,
-      x + size * 0.28,
-      y - size * 0.15,
-      x + size * 0.28,
-      y + size * 0.01,
-    );
-    context.bezierCurveTo(x + size * 0.28, y + size * 0.17, x, y + size * 0.38, x, y + size * 0.38);
-    context.bezierCurveTo(
-      x,
-      y + size * 0.38,
-      x - size * 0.28,
-      y + size * 0.17,
-      x - size * 0.28,
-      y + size * 0.01,
+      x - size * 0.17,
+      y + size * 0.2,
+      x - size * 0.34,
+      y - size * 0.08,
+      x - size * 0.3,
+      y - size * 0.26,
     );
     context.bezierCurveTo(
-      x - size * 0.28,
-      y - size * 0.15,
-      x - size * 0.24,
-      y - size * 0.36,
+      x - size * 0.22,
+      y - size * 0.52,
+      x + size * 0.22,
+      y - size * 0.52,
+      x + size * 0.3,
+      y - size * 0.26,
+    );
+    context.bezierCurveTo(
+      x + size * 0.34,
+      y - size * 0.08,
+      x + size * 0.17,
+      y + size * 0.2,
       x,
-      y - size * 0.36,
+      y + size * 0.48,
     );
     context.stroke();
     context.beginPath();
-    context.arc(x, y - size * 0.11, size * 0.1, 0, Math.PI * 2);
+    context.arc(x, y - size * 0.16, size * 0.1, 0, Math.PI * 2);
     context.stroke();
   }
   context.restore();
@@ -97,37 +116,49 @@ export function renderEndMarker(
 ): void {
   context.save();
   context.globalAlpha = 1;
-  fillCircle(context, center, metrics.surfaceSize / 2, surfaceColor);
+  drawCircleSurface(
+    context,
+    center,
+    metrics.circleSurfaceSize,
+    surfaceColor,
+    glyphColor,
+    metrics.outlineWidth,
+  );
 
   const size = metrics.glyphSize;
-  if (size >= 6) {
+  if (size >= 7) {
     prepareGlyph(context, glyphColor, metrics.lineWidth);
     const x = center.x - size * 0.025;
     const y = center.y;
-    const poleX = x - size * 0.18;
+    const poleX = x - size * 0.28;
     context.beginPath();
-    context.moveTo(poleX, y + size * 0.32);
-    context.lineTo(poleX, y - size * 0.32);
-    context.lineTo(x + size * 0.27, y - size * 0.32);
-    context.lineTo(x + size * 0.22, y - size * 0.02);
-    context.lineTo(poleX, y - size * 0.06);
+    context.moveTo(poleX, y + size * 0.45);
+    context.lineTo(poleX, y - size * 0.45);
+    context.lineTo(x + size * 0.43, y - size * 0.45);
+    context.lineTo(x + size * 0.37, y - size * 0.02);
+    context.lineTo(poleX, y - size * 0.08);
     context.stroke();
   }
   context.restore();
 }
 
-function fillRoundedSquare(
+function drawRoundedSquareSurface(
   context: CanvasRenderingContext2D,
   center: Readonly<CanvasPoint>,
   side: number,
-  color: string,
+  fillColor: string,
+  strokeColor: string,
+  strokeWidth: number,
 ): void {
-  const left = center.x - side / 2;
-  const top = center.y - side / 2;
-  const right = left + side;
-  const bottom = top + side;
-  const radius = side * 0.2;
-  context.fillStyle = color;
+  const pathSide = Math.max(0, side - strokeWidth);
+  const left = center.x - pathSide / 2;
+  const top = center.y - pathSide / 2;
+  const right = left + pathSide;
+  const bottom = top + pathSide;
+  const radius = pathSide * 0.18;
+  context.fillStyle = fillColor;
+  context.strokeStyle = strokeColor;
+  context.lineWidth = strokeWidth;
   context.beginPath();
   context.moveTo(left + radius, top);
   context.lineTo(right - radius, top);
@@ -140,9 +171,10 @@ function fillRoundedSquare(
   context.quadraticCurveTo(left, top, left + radius, top);
   context.closePath();
   context.fill();
+  context.stroke();
 }
 
-function strokeCastle(
+function strokeTower(
   context: CanvasRenderingContext2D,
   center: Readonly<CanvasPoint>,
   size: number,
@@ -150,27 +182,21 @@ function strokeCastle(
   const x = center.x;
   const y = center.y;
   context.beginPath();
-  context.moveTo(x - size * 0.3, y + size * 0.3);
-  context.lineTo(x - size * 0.3, y - size * 0.3);
-  context.lineTo(x - size * 0.18, y - size * 0.3);
-  context.lineTo(x - size * 0.18, y - size * 0.16);
-  context.lineTo(x - size * 0.08, y - size * 0.16);
-  context.lineTo(x - size * 0.08, y - size * 0.3);
-  context.lineTo(x + size * 0.08, y - size * 0.3);
-  context.lineTo(x + size * 0.08, y - size * 0.16);
-  context.lineTo(x + size * 0.18, y - size * 0.16);
-  context.lineTo(x + size * 0.18, y - size * 0.3);
-  context.lineTo(x + size * 0.3, y - size * 0.3);
-  context.lineTo(x + size * 0.3, y + size * 0.3);
-  context.lineTo(x - size * 0.3, y + size * 0.3);
+  context.moveTo(x - size * 0.42, y + size * 0.42);
+  context.lineTo(x - size * 0.42, y - size * 0.42);
+  context.lineTo(x - size * 0.16, y - size * 0.42);
+  context.lineTo(x - size * 0.16, y - size * 0.16);
+  context.lineTo(x + size * 0.16, y - size * 0.16);
+  context.lineTo(x + size * 0.16, y - size * 0.42);
+  context.lineTo(x + size * 0.42, y - size * 0.42);
+  context.lineTo(x + size * 0.42, y + size * 0.42);
+  context.lineTo(x - size * 0.42, y + size * 0.42);
   context.stroke();
 
-  if (size >= 9) {
+  if (size >= 8) {
     context.beginPath();
-    context.moveTo(x - size * 0.07, y + size * 0.3);
-    context.lineTo(x - size * 0.07, y + size * 0.12);
-    context.quadraticCurveTo(x, y + size * 0.03, x + size * 0.07, y + size * 0.12);
-    context.lineTo(x + size * 0.07, y + size * 0.3);
+    context.moveTo(x - size * 0.12, y + size * 0.42);
+    context.quadraticCurveTo(x, y - size * 0.02, x + size * 0.12, y + size * 0.42);
     context.stroke();
   }
 }
@@ -182,19 +208,19 @@ function strokeLock(
   lineWidth: number,
   color: string,
 ): void {
-  const size = side * 0.27;
-  const x = center.x + side * 0.2;
-  const y = center.y + side * 0.18;
+  const size = side * 0.22;
+  const x = center.x + side * 0.19;
+  const y = center.y - side * 0.18;
   const bodyWidth = size * 0.68;
   const bodyHeight = size * 0.48;
-  prepareGlyph(context, color, Math.min(lineWidth, size * 0.18));
+  prepareGlyph(context, color, Math.min(lineWidth, Math.max(1, size * 0.18)));
   context.beginPath();
-  context.moveTo(x - size * 0.22, y - size * 0.06);
-  context.lineTo(x - size * 0.22, y - size * 0.25);
-  context.quadraticCurveTo(x, y - size * 0.47, x + size * 0.22, y - size * 0.25);
-  context.lineTo(x + size * 0.22, y - size * 0.06);
+  context.moveTo(x - size * 0.22, y - size * 0.04);
+  context.lineTo(x - size * 0.22, y - size * 0.24);
+  context.quadraticCurveTo(x, y - size * 0.46, x + size * 0.22, y - size * 0.24);
+  context.lineTo(x + size * 0.22, y - size * 0.04);
   context.stroke();
-  context.strokeRect(x - bodyWidth / 2, y - size * 0.06, bodyWidth, bodyHeight);
+  context.strokeRect(x - bodyWidth / 2, y - size * 0.04, bodyWidth, bodyHeight);
 }
 
 export function renderTowerMarker(
@@ -207,15 +233,34 @@ export function renderTowerMarker(
 ): void {
   context.save();
   context.globalAlpha = 1;
-  fillRoundedSquare(context, center, metrics.surfaceSize, surfaceColor);
+  drawRoundedSquareSurface(
+    context,
+    center,
+    metrics.towerSurfaceSize,
+    surfaceColor,
+    lockAccent === undefined ? glyphColor : LOCKED_TOWER_OUTLINE,
+    metrics.outlineWidth,
+  );
 
-  const glyphSize = metrics.glyphSize * 1.04;
+  const glyphSize = metrics.towerSurfaceSize * (lockAccent === undefined ? 0.66 : 0.62);
   if (glyphSize >= 6) {
     prepareGlyph(context, glyphColor, metrics.lineWidth);
-    strokeCastle(context, center, glyphSize);
-    if (lockAccent !== undefined && metrics.cellSize >= 28) {
-      strokeLock(context, center, metrics.surfaceSize, metrics.lineWidth, lockAccent);
+    strokeTower(context, center, glyphSize);
+    if (lockAccent !== undefined && metrics.cellSize >= 32) {
+      strokeLock(context, center, metrics.towerSurfaceSize, metrics.lineWidth, lockAccent);
     }
+  }
+  if (lockAccent !== undefined && metrics.cellSize >= 28 && metrics.cellSize < 32) {
+    context.fillStyle = lockAccent;
+    context.beginPath();
+    context.arc(
+      center.x + metrics.towerSurfaceSize * 0.19,
+      center.y - metrics.towerSurfaceSize * 0.18,
+      metrics.towerSurfaceSize * 0.055,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
   }
   context.restore();
 }

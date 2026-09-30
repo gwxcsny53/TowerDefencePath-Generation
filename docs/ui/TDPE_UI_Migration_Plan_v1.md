@@ -854,6 +854,10 @@ M6.5 的后续 Marker pass 将 Spawn 绘制为绿色圆形底形加 MapPin-like 
 
 本次 Marker pass 只改 Node 的纯视觉表现；Path、Grid、Junction、Selection、Validation 和 Route Preview 不调整。Node 遍历、坐标、命中、Renderer 顺序及 M7 范围保持不变。
 
+### Visual Revision
+
+保留 `NodeRenderer → MarkerGlyphRenderer → RenderTheme` 架构，仅修订 Marker Visual Recipe：由彩色实心底形加浅色小图标，改为暗色中性底形、语义色外框和更大、更简洁的同色图标。Spawn 使用绿色 Pin，End 使用红色 Flag，Tower 使用琥珀色塔形，Locked Tower 使用灰色塔形和右上角的小琥珀锁；小 Cell 逐级省略内部细节。此修订仍需单独浏览器视觉验收，M7 保持暂停。
+
 ## 验收门禁
 
 实施阶段执行 typecheck、lint、format:check、test:run、build 与 `git diff --check`。正式浏览器视觉和指针验收单独进行；实施完成不代表 M6.5 里程碑关闭。验收覆盖 Grid、Path、各 Marker、Selection、Validation、Route Preview、复杂 Junction、目标 viewport、高 DPR 和 Canvas 四角指针准确性。M6.5 的视觉对比与指针回归通过后才可进入 M7。
